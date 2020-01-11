@@ -1,3 +1,5 @@
+package test
+
 import parser.NewZFParser
 import java.io.File
 

@@ -1,3 +1,5 @@
+package test
+
 import parser.ZhengFangParser
 import java.io.File
 

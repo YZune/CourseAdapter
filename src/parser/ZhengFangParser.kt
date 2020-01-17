@@ -1,5 +1,6 @@
 package parser
 
+import Common
 import bean.Course
 
 class ZhengFangParser(source: String, private val type: Int) : Parser(source) {

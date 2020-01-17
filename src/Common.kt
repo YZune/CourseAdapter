@@ -7,7 +7,8 @@ object Common {
     val nodePattern1 = Regex("""\d{1,2}[~]*\d*节""")
 
     val weekPattern = Regex("""\{第\d{1,2}[-]*\d*周""")
-    val weekPattern1 = Regex("""\d{1,2}[-]*\d*周""")
+    val weekPattern1 = Regex("""\d{1,2}[-]*\d*""")
+    val weekPattern2 = Regex("""\d{1,2}周""")
 
     val chineseWeekList = arrayOf("", "周一", "周二", "周三", "周四", "周五", "周六", "周日")
     val otherHeader = arrayOf("时间", "星期一", "星期二", "星期三", "星期四", "星期五", "星期六", "星期日", "早晨", "上午", "下午", "晚上")

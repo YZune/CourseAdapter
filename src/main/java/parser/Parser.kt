@@ -1,5 +1,6 @@
 package parser
 
+import Common
 import bean.Course
 import bean.CourseBaseBean
 import bean.CourseDetailBean

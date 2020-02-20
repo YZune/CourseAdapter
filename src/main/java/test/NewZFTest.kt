@@ -1,17 +1,20 @@
 package test
 
 import parser.NewZFParser
+import parser.Parser
 import java.io.File
 
 fun main() {
-    val path = "/Users/yzune/YZune_Git/database/python/schools/武汉轻工大学"
+    val path = "/Users/yzune/YZune_Git/database/python/schools/华中师范大学"
     val file = File(path)
     val fs = file.listFiles()
+//    (NewZFParser(file.readText()) as Parser).saveCourse()
+//    println()
     fs?.forEach {
         if (it.isDirectory) return
         val content = it.readText()
         try {
-            NewZFParser(content).saveCourse()
+            (NewZFParser(content) as Parser).saveCourse()
             println("↑" + it.name)
             println()
         } catch (e: Exception) {

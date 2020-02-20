@@ -3,6 +3,23 @@ import bean.WeekBean
 
 object Common {
 
+    const val TYPE_ZF = "zf"
+    const val TYPE_ZF_1 = "zf_1"
+    const val TYPE_ZF_NEW = "zf_new"
+    const val TYPE_URP = "urp"
+    const val TYPE_URP_NEW = "urp_new"
+    const val TYPE_QZ = "qz"
+    const val TYPE_QZ_OLD = "qz_old"
+    const val TYPE_QZ_CRAZY = "qz_crazy"
+    const val TYPE_QZ_BR = "qz_br"
+    const val TYPE_QZ_WITH_NODE = "qz_with_node"
+    const val TYPE_CF = "cf"
+    const val TYPE_PKU = "pku" // 北京大学
+    const val TYPE_BNUZ = "bnuz" // 北京师范大学珠海分校
+    const val TYPE_HNIU = "hniu" // 湖南信息职业技术学院
+    const val TYPE_HNUST = "hnust" // 湖南科技大学
+    const val TYPE_MAINTAIN = "maintain" // 维护状态，暂不可用
+
     val nodePattern = Regex("""\(\d{1,2}[-]*\d*节""")
     val nodePattern1 = Regex("""\d{1,2}[~]*\d*节""")
 
@@ -177,7 +194,7 @@ object Common {
         }
     }
 
-    private fun getNodeInt(nodeStr: String): Int {
+    fun getNodeInt(nodeStr: String): Int {
         return when (nodeStr) {
             "一" -> 1
             "二" -> 2

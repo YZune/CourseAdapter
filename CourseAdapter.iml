@@ -10,5 +10,6 @@
     <orderEntry type="library" name="KotlinJavaRuntime" level="project" />
     <orderEntry type="library" name="org.jsoup:jsoup:1.12.1" level="project" />
     <orderEntry type="library" name="com.google.code.gson:gson:2.8.6" level="project" />
+    <orderEntry type="library" name="kotlin-csv-jvm-0.7.3" level="project" />
   </component>
 </module>

@@ -28,6 +28,7 @@ class OldQzParser(source: String) : Parser(source) {
                     var preIndex = -1
 
                     fun toCourse() {
+                        if (preIndex == -1) return
                         val courseName = Jsoup.parse(split[preIndex - 3]).text().trim()
                         val room = Jsoup.parse(split[preIndex + 1]).text().trim()
                         val teacher = Jsoup.parse(split[preIndex - 1]).text().trim()

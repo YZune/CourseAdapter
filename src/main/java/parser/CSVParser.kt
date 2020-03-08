@@ -10,8 +10,8 @@ class CSVParser(source: String) : Parser(source) {
         val lines = csvReader().readAll(source)
         for (i in 1 until lines.size) {
             val line = lines[i]
-            if (line.size != 7) {
-                throw Exception("第 ${i + 1} 行数据有误")
+            if (line.size < 7) {
+                throw Exception("第 ${i + 1} 行数据不足")
             }
             var startWeek = 0
             var endWeek = 0

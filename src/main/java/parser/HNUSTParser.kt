@@ -6,13 +6,14 @@ import org.jsoup.Jsoup
 
 // 湖南科技大学
 // 湖南科技大学潇湘学院
-class HNUSTParser(source: String, private val oldQzType: Int) : Parser(source) {
+class HNUSTParser(source: String) : Parser(source) {
 
     override fun generateCourseList(): List<Course> {
         val courseList = arrayListOf<Course>()
         val doc = Jsoup.parse(source)
         val kbtable = doc.getElementById("kbtable")
         val trs = kbtable.getElementsByTag("tr")
+        var courseNamePreIndex = -1
 
         for (tr in trs) {
             val tds = tr.getElementsByTag("td")
@@ -26,17 +27,13 @@ class HNUSTParser(source: String, private val oldQzType: Int) : Parser(source) {
                 day++
                 val divs = td.getElementsByTag("div")
                 for (div in divs) {
-                    if (oldQzType == 0) {
-                        if (div.attr("style") != "display: none;" || div.text().isBlank()) continue
-                    } else {
-                        if (div.attr("style") == "display: none;" || div.text().isBlank()) continue
-                    }
+                    if (div.text().isBlank() || !Common.weekPattern2.containsMatchIn(div.text())) continue
                     val split = div.html().split("<br>")
                     var preIndex = -1
 
                     fun toCourse() {
                         if (preIndex == -1) return
-                        val courseName = Jsoup.parse(split[0]).text().trim()
+                        val courseName = Jsoup.parse(split[preIndex - courseNamePreIndex]).text().trim()
                         val room = Jsoup.parse(split[preIndex + 1]).text().trim()
                         val teacher = Jsoup.parse(split[preIndex - 1]).text().trim()
 
@@ -63,6 +60,9 @@ class HNUSTParser(source: String, private val oldQzType: Int) : Parser(source) {
                         if (Common.weekPattern2.containsMatchIn(split[i])) {
                             if (preIndex != -1) {
                                 toCourse()
+                            }
+                            if (courseNamePreIndex == -1 && preIndex == -1) {
+                                courseNamePreIndex = i
                             }
                             preIndex = i
                         }

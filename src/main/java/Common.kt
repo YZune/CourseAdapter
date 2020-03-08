@@ -1,3 +1,4 @@
+import bean.Course
 import bean.CourseBaseBean
 import bean.WeekBean
 
@@ -22,6 +23,7 @@ object Common {
 
     val nodePattern = Regex("""\(\d{1,2}[-]*\d*节""")
     val nodePattern1 = Regex("""\d{1,2}[~]*\d*节""")
+    val nodePattern2 = Regex("""(^\d.*)节""")
 
     val weekPattern = Regex("""\{第\d{1,2}[-]*\d*周""")
     val weekPattern1 = Regex("""\d{1,2}[-]*\d*""")
@@ -221,4 +223,14 @@ object Common {
         }
     }
 
+    fun judgeContinuousCourse(pre: Course, current: Course): Boolean {
+        return pre.name == current.name
+                && pre.day == current.day
+                && pre.room == current.room
+                && pre.teacher == current.teacher
+                && pre.startWeek == current.startWeek
+                && pre.endWeek == current.endWeek
+                && pre.type == current.type
+                && pre.endNode == current.startNode - 1
+    }
 }

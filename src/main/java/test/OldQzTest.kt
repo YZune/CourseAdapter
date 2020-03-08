@@ -4,7 +4,7 @@ import parser.OldQzParser
 import java.io.File
 
 fun main() {
-    val source = File("/Users/yzune/Downloads/新建文本文档 (2).html").readText()
+    val source = File("/Users/yzune/YZune_Git/database/python/html/湖南工学院.html").readText()
     OldQzParser(source).apply {
         saveCourse()
     }

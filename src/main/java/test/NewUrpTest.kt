@@ -11,7 +11,7 @@ fun main() {
         "天津职业技术师范大学", "河北工程大学", "河北工业大学", "山西农业大学信息学院",
         "齐鲁师范学院"
     )
-    val file = File("/Users/yzune/Downloads/NewUrpJson.json")
+    val file = File("/Users/yzune/Downloads/NewUrpJson2.json")
     NewUrpParser(file.readText()).apply {
         generateCourseList()
         saveCourse()

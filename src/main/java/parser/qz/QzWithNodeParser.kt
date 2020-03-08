@@ -7,7 +7,7 @@ class QzWithNodeParser(source: String) : QzParser(source) {
 
     override fun convert(day: Int, nodeCount: Int, infoStr: String, courseList: MutableList<Course>) {
         val courseHtml = Jsoup.parse(infoStr)
-        val courseName = infoStr.substringBefore("<br>").trim()
+        val courseName = Jsoup.parse(infoStr.substringBefore("<br>").substringBefore("<font")).text().trim()
         val teacher = courseHtml.getElementsByAttributeValue("title", "老师").text().trim()
         val room = courseHtml.getElementsByAttributeValue(
             "title",
@@ -55,12 +55,19 @@ class QzWithNodeParser(source: String) : QzParser(source) {
                 startWeek = it.substringBefore('(').toInt()
                 endWeek = it.substringBefore('(').toInt()
             }
+            var startNode = nodeList.first().substringBefore('节').toInt()
+            var endNode = nodeList.last().substringBefore('节').toInt()
+            if (startNode > 99) {
+                val str = nodeList[0].substringBefore('节').trim()
+                startNode = str.substring(0, 2).toInt()
+                endNode = str.substring(str.length - 2, str.length).toInt()
+            }
             courseList.add(
                 Course(
                     name = courseName, teacher = teacher,
                     room = room, day = day,
-                    startNode = nodeList.first().substringBefore('节').toInt(),
-                    endNode = nodeList.last().substringBefore('节').toInt(),
+                    startNode = startNode,
+                    endNode = endNode,
                     startWeek = startWeek, endWeek = endWeek,
                     type = type
                 )

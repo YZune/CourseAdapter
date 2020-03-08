@@ -1,5 +1,6 @@
 package parser
 
+import Common
 import bean.Course
 import org.jsoup.Jsoup
 
@@ -23,7 +24,7 @@ class OldQzParser(source: String) : Parser(source) {
                 day++
                 val divs = td.getElementsByTag("div")
                 for (div in divs) {
-                    if (div.attr("style") == "display: none;" || div.text().isBlank()) continue
+                    if (div.text().isBlank() || !Common.weekPattern2.containsMatchIn(div.text())) continue
                     val split = div.html().split("<br>")
                     var preIndex = -1
 

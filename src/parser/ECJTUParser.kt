@@ -46,7 +46,7 @@ class ECJTUParser(source: String) : Parser(source) {
                             courseInfo[1].substringAfter('-').substringBefore('(').toInt()
                         }
                         startNode = courseInfo[1].substringAfter('-').substringAfter(' ').substringBefore(',').toInt()
-                        endNode = courseInfo[1].substringAfter(',').toInt()
+                        endNode = courseInfo[1].substringAfterLast(',').toInt()
                         room = " "
                         courseList.add(
                             Course(
@@ -80,7 +80,7 @@ class ECJTUParser(source: String) : Parser(source) {
                         }
 
                         startNode = courseInfo[2].substringAfter(' ').substringBefore(',').toInt()
-                        endNode = courseInfo[2].substringAfter(',').toInt()
+                        endNode = courseInfo[2].substringAfterLast(',').toInt()
                         courseList.add(
                             Course(
                                 name = courseName, day = day, room = room,

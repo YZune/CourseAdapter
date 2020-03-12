@@ -46,7 +46,7 @@ class JinZhiParser(source: String) : Parser(source) {
                     start = 1
                     end = 1
                 }
-                room = detail.last()
+                room = if (detail.size - dayIndex > 3) detail[detail.size - 2] else detail.last()
                 for (i in 0 until dayIndex) {
                     try {
                         type = when {
@@ -61,12 +61,20 @@ class JinZhiParser(source: String) : Parser(source) {
                             }
                         }
                         val weekInfo = detail[i].substringBefore('周').split('-')
-                        if (weekInfo.size > 1) {
-                            startWeek = weekInfo[0].trim().toInt()
-                            endWeek = weekInfo.last().trim().toInt()
+                        val startWeekStr = weekInfo[0].trim()
+                        for (j in startWeekStr.indices.reversed()) {
+                            if (!startWeekStr[j].isDigit()) {
+                                startWeek = startWeekStr.substring(j + 1).toInt()
+                                break
+                            }
+                            if (j == 0) {
+                                startWeek = startWeekStr.toInt()
+                            }
+                        }
+                        endWeek = if (weekInfo.size > 1) {
+                            weekInfo.last().trim().toInt()
                         } else {
-                            startWeek = weekInfo[0].trim().toInt()
-                            endWeek = startWeek
+                            startWeek
                         }
                     } catch (e: Exception) {
                         startWeek = 1
@@ -87,7 +95,7 @@ class JinZhiParser(source: String) : Parser(source) {
 }
 
 fun main() {
-    val s = File("/Users/yzune/Downloads/金智列表1.txt").readLines().forEach {
+    File("/Users/yzune/Downloads/金智列表1.txt").readLines().forEach {
         println(it)
         JinZhiParser(File("/Users/yzune/YZune_Git/database/python/$it").readText()).saveCourse()
         println()

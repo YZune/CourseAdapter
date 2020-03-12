@@ -6,6 +6,8 @@ import parser.Parser
 
 open class QzParser(source: String) : Parser(source) {
 
+    private val sundayFirstDayMap = arrayOf(0, 7, 1, 2, 3, 4, 5, 6)
+    private var sundayFirst = false
     open val tableName = "kbcontent"
 
     open fun parseCourseName(infoStr: String): String {
@@ -61,7 +63,13 @@ open class QzParser(source: String) : Parser(source) {
         val doc = Jsoup.parse(source)
         val kbtable = doc.getElementById("kbtable")
         val trs = kbtable.getElementsByTag("tr")
+        try {
+            val ths = kbtable.getElementsByTag("th")
+            sundayFirst =
+                ths.indexOfFirst { it.text().contains("星期日") } < ths.indexOfFirst { it.text().contains("星期一") }
+        } catch (e: Exception) {
 
+        }
         var nodeCount = 0
         for (tr in trs) {
             val tds = tr.getElementsByTag("td")
@@ -85,7 +93,7 @@ open class QzParser(source: String) : Parser(source) {
                     var splitIndex = courseHtml.indexOf("-----")
                     while (splitIndex != -1) {
                         convert(
-                            day,
+                            sundayFirstDayMap[day],
                             nodeCount,
                             courseHtml.substring(startIndex, splitIndex),
                             courseList
@@ -94,7 +102,7 @@ open class QzParser(source: String) : Parser(source) {
                         splitIndex = courseHtml.indexOf("-----", startIndex)
                     }
                     convert(
-                        day,
+                        sundayFirstDayMap[day],
                         nodeCount,
                         courseHtml.substring(startIndex, courseHtml.length),
                         courseList

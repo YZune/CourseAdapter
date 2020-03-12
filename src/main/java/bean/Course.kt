@@ -9,5 +9,5 @@ data class Course(
     var endNode: Int,
     val startWeek: Int,
     val endWeek: Int,
-    val type: Int
+    var type: Int
 )

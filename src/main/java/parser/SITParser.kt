@@ -5,18 +5,25 @@ import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
 import org.jsoup.nodes.Element
 import org.jsoup.select.Elements
-import parser.Parser
 
 class SITParser(source: String) : Parser(source) {
-    val allResults = ArrayList<Course>() //用于存放所有的课程
 
-    init {
-        val doc: Document = Jsoup.parse(source)
+    private fun isBlankWithoutIndex(elements: Elements): Boolean {
+        val str = StringBuffer()
+        for (i in 1 until elements.size) {
+            str.append(elements[i].text())
+        }
+        return str.trim().isEmpty()
+    }
+
+    override fun generateCourseList(): List<Course> {
+        val allResults = ArrayList<Course>() //用于存放所有的课程
+        val doc: Document = Jsoup.parse(source.substringAfterLast("<body>"))
         val tableElement: Element = doc.getElementsByTag("form").first()
         val tables: Elements = tableElement.getElementsByTag("table")
 
         //以下代码开始解析课表
-        val tableMain = tables.get(0)   //获取课程表的主表格
+        val tableMain = tables[0]   //获取课程表的主表格
         val trs: Elements = tableMain.getElementsByTag("tr")    //获取课程表中的每一行
         //从第二行开始为第一节课
         for (i in 2 until trs.size) {
@@ -38,39 +45,28 @@ class SITParser(source: String) : Parser(source) {
 
         //以下代码应用调课信息
         //暂时懒得写
-    }
-
-    fun isBlankWithoutIndex(elements: Elements): Boolean {
-        var str = StringBuffer()
-        for (i in 1 until elements.size) {
-            str.append(elements[i].text())
-        }
-        return str.trim().isEmpty()
-    }
-
-    override fun generateCourseList(): List<Course> {
         return allResults
     }
 
-    fun getRowSpan(td:Element):Int{
+    private fun getRowSpan(td: Element): Int {
         val rowSpan = td.attributes().get("rowspan")
-        if(rowSpan.isEmpty()){
-            return 1
-        }else{
-            return Integer.parseInt(rowSpan.toString())
+        return if (rowSpan.isEmpty()) {
+            1
+        } else {
+            Integer.parseInt(rowSpan.toString())
         }
     }
 
     //当一行中td的数目不等于8时，即不能与星期一一对应时，使用本解析器
-    fun parseCourseByTrsWhenTdNumIsNot8(lastLineCourses: Elements, lineCourses: Elements): List<Course> {
-        val emptyCourse=Element("td")
-        val fullElements=Elements()
-        val iter=lineCourses.iterator()
+    private fun parseCourseByTrsWhenTdNumIsNot8(lastLineCourses: Elements, lineCourses: Elements): List<Course> {
+        val emptyCourse = Element("td")
+        val fullElements = Elements()
+        val iter = lineCourses.iterator()
         lastLineCourses.forEach {
-            val rowSpan=getRowSpan(it)
-            if(rowSpan==1&&iter.hasNext()){
+            val rowSpan = getRowSpan(it)
+            if (rowSpan == 1 && iter.hasNext()) {
                 fullElements.add(iter.next())
-            }else{
+            } else {
                 fullElements.add(emptyCourse)
             }
         }
@@ -78,10 +74,8 @@ class SITParser(source: String) : Parser(source) {
     }
 
 
-
-
     //解析每节课在一周的课程列表，传入每一行的Elements，表格中的一个tr标签，下面有许多td标签
-    fun parseCoursesByTrs(lineCourses: Elements): List<Course> {
+    private fun parseCoursesByTrs(lineCourses: Elements): List<Course> {
         val result = ArrayList<Course>()
         val startNode = Integer.parseInt(lineCourses[0].text())      //开始于第几节课
         for (i in 1 until lineCourses.size) { //i的含义为星期几
@@ -113,7 +107,7 @@ class SITParser(source: String) : Parser(source) {
            </div>
        * </pre>
        * */
-    fun parseCourseElement(courseDiv: Element, day: Int, startNode: Int, endNode: Int): Course {
+    private fun parseCourseElement(courseDiv: Element, day: Int, startNode: Int, endNode: Int): Course {
         val courseInfos = courseDiv.text().split(' ')
         val name = courseInfos[0]
 
@@ -123,21 +117,18 @@ class SITParser(source: String) : Parser(source) {
         val type = weekParser.getSingleDouble()
 
         val room = courseInfos[2]
-        //将课程序号与老师名称合并到一个teacher属性中
-        val teacher = courseInfos[3] + ' ' + courseInfos[4]
+        // 将课程序号与老师名称合并到一个teacher属性中
+        // val teacher = courseInfos[3] + ' ' + courseInfos[4]
+        val teacher = courseInfos[4]
         return Course(name, day, room, teacher, startNode, endNode, startWeek, endWeek, type)
     }
 
     class WeekParser(val source: String) {
         //消除单双周数据，掐头去尾
         private val mySource = source.replace("*", "").substring(1).removeSuffix("周")
-
-        companion object {
-            const val EVERY_WEEK: Int = 0
-            const val SINGLE_WEEK: Int = 1
-            const val DOUBLE_WEEK: Int = 2
-        }
-
+        private val EVERY_WEEK: Int = 0
+        private val SINGLE_WEEK: Int = 1
+        private val DOUBLE_WEEK: Int = 2
 
         fun getStartWeek(): Int {
             //有可能一周的这一天仅上一节课
@@ -157,12 +148,12 @@ class SITParser(source: String) : Parser(source) {
 
         fun getSingleDouble(): Int {
             if (source.contains("**")) {
-                return WeekParser.DOUBLE_WEEK
+                return DOUBLE_WEEK
             }
             if (source.contains("*")) {
-                return WeekParser.SINGLE_WEEK
+                return SINGLE_WEEK
             }
-            return WeekParser.EVERY_WEEK
+            return EVERY_WEEK
         }
 
     }

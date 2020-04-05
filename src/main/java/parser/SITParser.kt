@@ -1,4 +1,4 @@
-package main.java.parser
+package parser
 
 import bean.Course
 import org.jsoup.Jsoup

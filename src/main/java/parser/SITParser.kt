@@ -1,4 +1,4 @@
-package main.java.parser
+package parser
 
 import bean.Course
 import org.jsoup.Jsoup
@@ -6,12 +6,10 @@ import org.jsoup.nodes.Document
 import org.jsoup.nodes.Element
 import org.jsoup.select.Elements
 import parser.Parser
-import java.io.File
 
-//source参数接收教务系统中的课表frame中的源代码
 class SITParser(source: String) : Parser(source) {
-    
-    val allResults=ArrayList<Course>() //用于存放所有的课程
+    val allResults = ArrayList<Course>() //用于存放所有的课程
+
     init {
         val doc: Document = Jsoup.parse(source)
         val tableElement: Element = doc.getElementsByTag("form").first()
@@ -23,36 +21,78 @@ class SITParser(source: String) : Parser(source) {
         //从第二行开始为第一节课
         for (i in 2 until trs.size) {
             //获取每节课在整个星期的课程列表
-            val nodeCourses = trs[i].getElementsByTag("td")
-            parseCoursesByTrs(nodeCourses).forEach{
-                allResults.add(it)
+            val nodeCourses: Elements = trs[i].getElementsByTag("td")
+            //若为第一节课，或者该节课每周都有，或者不为空
+            if (i == 2 || nodeCourses.size == 8) {
+                parseCoursesByTrs(nodeCourses).forEach {
+                    allResults.add(it)
+                }
+            } else if (!isBlankWithoutIndex(nodeCourses)) {
+                val lastNodeCourses: Elements = trs[i - 1].getElementsByTag("td")
+                parseCourseByTrsWhenTdNumIsNot8(lastNodeCourses, nodeCourses).forEach {
+                    allResults.add(it)
+                }
             }
+
         }
 
         //以下代码应用调课信息
         //暂时懒得写
     }
 
-    override fun generateCourseList(): List<Course> {
-        allResults.forEach {
-            println(it)
+    fun isBlankWithoutIndex(elements: Elements): Boolean {
+        var str = StringBuffer()
+        for (i in 1 until elements.size) {
+            str.append(elements[i].text())
         }
+        return str.trim().isEmpty()
+    }
+
+    override fun generateCourseList(): List<Course> {
         return allResults
     }
 
-    //解析每节课在一周的课程列表，传入每一行的Elements
-    fun parseCoursesByTrs(courses: Elements): List<Course> {
+    fun getRowSpan(td:Element):Int{
+        val rowSpan = td.attributes().get("rowspan")
+        if(rowSpan.isEmpty()){
+            return 1
+        }else{
+            return Integer.parseInt(rowSpan.toString())
+        }
+    }
+
+    //当一行中td的数目不等于8时，即不能与星期一一对应时，使用本解析器
+    fun parseCourseByTrsWhenTdNumIsNot8(lastLineCourses: Elements, lineCourses: Elements): List<Course> {
+        val emptyCourse=Element("td")
+        val fullElements=Elements()
+        val iter=lineCourses.iterator()
+        lastLineCourses.forEach {
+            val rowSpan=getRowSpan(it)
+            if(rowSpan==1&&iter.hasNext()){
+                fullElements.add(iter.next())
+            }else{
+                fullElements.add(emptyCourse)
+            }
+        }
+        return parseCoursesByTrs(fullElements)
+    }
+
+
+
+
+    //解析每节课在一周的课程列表，传入每一行的Elements，表格中的一个tr标签，下面有许多td标签
+    fun parseCoursesByTrs(lineCourses: Elements): List<Course> {
         val result = ArrayList<Course>()
-        val startNode = Integer.parseInt(courses[0].text())      //开始于第几节课
-        for (i in 1 until courses.size) { //i的含义为星期几
-            val rowSpan = courses[i].attributes().get("rowspan")
+        val startNode = Integer.parseInt(lineCourses[0].text())      //开始于第几节课
+        for (i in 1 until lineCourses.size) { //i的含义为星期几
+            val rowSpan = lineCourses[i].attributes().get("rowspan")
             if (rowSpan.isEmpty()) {
                 //如果某天没课，那么直接跳过本次循环
                 continue
             }
             val nodeLength = Integer.parseInt(rowSpan)
             val endNode = startNode + nodeLength - 1
-            val course = courses[i].getElementsByAttributeValue("name", "d1")
+            val course = lineCourses[i].getElementsByAttributeValue("name", "d1")
             course.forEach {
                 val courseElement: Course = parseCourseElement(it, i, startNode, endNode)
                 result.add(courseElement)
@@ -88,10 +128,6 @@ class SITParser(source: String) : Parser(source) {
         return Course(name, day, room, teacher, startNode, endNode, startWeek, endWeek, type)
     }
 
-    //用于解析开始，终止周，单双周信息
-    //source参数传入原始数据，比如
-    //第1-16周**，第1-16周*，第1-16周，第3周
-    //其中，**为双周，*为单周，不带星号的是每周
     class WeekParser(val source: String) {
         //消除单双周数据，掐头去尾
         private val mySource = source.replace("*", "").substring(1).removeSuffix("周")

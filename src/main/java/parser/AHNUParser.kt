@@ -53,9 +53,12 @@ class AHNUParser(source: String) : Parser(source) {
                             endWeek = res.substringAfter('-').substringBefore('周').toInt()
                         }
                         val p = info.toString().substringAfter('第').substringBefore('节');
-                        startNode = p[0].toInt() - 48
-                        endNode = p[p.lastIndex].toInt() - 48
-                    } else if (cnt == 5 && classInfo.size >= 8) {
+                        val startTime = p.substringBefore(',')
+                        val endTime = p.substringAfterLast(',')
+                        startNode = startTime.toInt()
+                        endNode = endTime.toInt()
+                    }
+                    else if (cnt == 5 && classInfo.size >= 8) {
                         courseList.add(
                             Course(
                                 name = courseName.removeSurrounding("[", "]"),

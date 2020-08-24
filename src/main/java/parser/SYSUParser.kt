@@ -34,10 +34,10 @@ class SYSUParser(source: String) : Parser(source) {
 
                 val colspan = td.attr("colspan").toInt()
                 currentColumnSpan += colspan
-//                println(currentColumnSpan)
+//              println(currentColumnSpan)
                 if (currentColumnSpan > columnSpanList[countDay]) {
+                    currentColumnSpan -= columnSpanList[countDay]
                     countDay++
-                    currentColumnSpan = 0
                 }
                 if (td.className() == "11111")
                     continue

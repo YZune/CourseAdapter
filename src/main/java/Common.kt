@@ -20,6 +20,8 @@ object Common {
     const val TYPE_HNIU = "hniu" // 湖南信息职业技术学院
     const val TYPE_HNUST = "hnust" // 湖南科技大学
     const val TYPE_AHNU = "ahnu" //安徽师范大学
+    const val TYPE_NewAHNU = "newahnu" //安徽师范大学
+
     const val TYPE_MAINTAIN = "maintain" // 维护状态，暂不可用
 
     val nodePattern = Regex("""\(\d{1,2}[-]*\d*节""")
@@ -29,6 +31,7 @@ object Common {
     val weekPattern = Regex("""\{第\d{1,2}[-]*\d*周""")
     val weekPattern1 = Regex("""\d{1,2}[-]*\d*""")
     val weekPattern2 = Regex("""\d{1,2}周""")
+
 
     val chineseWeekList = arrayOf("", "周一", "周二", "周三", "周四", "周五", "周六", "周日")
     val otherHeader = arrayOf("时间", "星期一", "星期二", "星期三", "星期四", "星期五", "星期六", "星期日", "早晨", "上午", "下午", "晚上")
@@ -222,6 +225,37 @@ object Common {
             "二十" -> 20
             else -> -1
         }
+    }
+    fun containNodeInt(nodeStr: String): Int {
+        if(nodeStr.contains('一'))
+            return 1
+        if(nodeStr.contains('二'))
+            return 2
+        if(nodeStr.contains('三'))
+            return 3
+        if(nodeStr.contains('四'))
+            return 4
+        if(nodeStr.contains('五'))
+            return 5
+        if(nodeStr.contains('六'))
+            return 6
+        if(nodeStr.contains('七'))
+            return 7
+        if(nodeStr.contains('八'))
+            return 8
+        if(nodeStr.contains('九'))
+            return 9
+        if(nodeStr.contains('十'))
+            return 10
+        if(nodeStr.contains("十一"))
+            return 11
+        if(nodeStr.contains("十二"))
+            return 12
+        if(nodeStr.contains("十三"))
+            return 13
+        if(nodeStr.contains("十四"))
+            return 14
+        return -1
     }
 
     fun judgeContinuousCourse(pre: Course, current: Course): Boolean {

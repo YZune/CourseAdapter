@@ -25,8 +25,3 @@
 1. 建议从项目外引用 html 文件，提交时一定不要上传 html 文件，涉及隐私问题。
 
 2. 其实继承该抽象类，数据来源不一定是 html，可以是 Excel、Json 等等（发挥下想象力）。
-
-## Todo
-
-1. 增加模拟登录导入的模板
-Warning:Kotlin: Classpath entry points to a non-existent location: C:\Users\Rocinante\Downloads\kotlin-csv-jvm-0.7.3.jar

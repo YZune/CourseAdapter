@@ -16,7 +16,6 @@ class AHNUParser(source: String) : Parser(source) {
             val td = tr.getElementsByTag("td")
             for (st in td) {
                 if (st.childNodeSize() <= 1) continue
-                //println(st)
                 var courseName: String = "";
                 var day = 0;
                 var room = "";

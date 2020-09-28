@@ -21,6 +21,7 @@ object Common {
     const val TYPE_HNUST = "hnust" // 湖南科技大学
     const val TYPE_AHNU = "ahnu" //安徽师范大学
     const val TYPE_NewAHNU = "newahnu" //安徽师范大学
+    const val TYPE_GZHUYJS = "gzhuyjs" //广州大学研究生
 
     const val TYPE_MAINTAIN = "maintain" // 维护状态，暂不可用
 

@@ -2,12 +2,15 @@ package parser
 
 import Common
 import bean.Course
+import java.io.File
 
 class ZhengFangParser(source: String, private val type: Int) : Parser(source) {
 
+    private val brRegex = Regex("(<br>){3,}")
+
     override fun generateCourseList(): List<Course> {
         val doc = org.jsoup.Jsoup.parse(source)
-        val table1 = doc.getElementById("Table1")
+        val table1 = doc.getElementById("Table1") ?: doc.getElementById("kbgrid_table")
         val trs = table1.getElementsByTag("tr")
         val importBeanList = ArrayList<ImportBean>()
         var node: Int = -1
@@ -46,9 +49,9 @@ class ZhengFangParser(source: String, private val type: Int) : Parser(source) {
     private fun parseImportBean(cDay: Int, html: String, node: Int): ArrayList<ImportBean> {
         val courses = ArrayList<ImportBean>()
         var isAbnormal = false
-        val courseSplits = if (html.substringBeforeLast("</td>").contains("<br><br><br>")) {
+        val courseSplits = if (html.substringBeforeLast("</td>").contains(brRegex)) {
             isAbnormal = true
-            html.substringBeforeLast("</td>").split("<br><br><br>")
+            html.substringBeforeLast("</td>").split(brRegex.find(html)!!.groupValues[0], "<br><br>")
         } else {
             html.substringBeforeLast("</td>").split("<br><br>")
         }
@@ -57,29 +60,39 @@ class ZhengFangParser(source: String, private val type: Int) : Parser(source) {
             if (split.isEmpty() || split.size < 3) continue
             val temp = if (split[1] in Common.courseProperty) {
                 if (split.size == 4) {
-                    ImportBean(startNode = node, name = split[0],
+                    ImportBean(
+                        startNode = node, name = split[0],
                         timeInfo = split[2],
-                        room = split[3], teacher = "", cDay = cDay)
+                        room = split[3], teacher = "", cDay = cDay
+                    )
                 } else {
-                    ImportBean(startNode = node, name = split[0],
+                    ImportBean(
+                        startNode = node, name = split[0],
                         timeInfo = split[2],
-                        room = split[4], teacher = split[3], cDay = cDay)
+                        room = split[4], teacher = split[3], cDay = cDay
+                    )
                 }
             } else {
                 if (split.size == 3) {
                     if (!isAbnormal) {
-                        ImportBean(startNode = node, name = split[0],
+                        ImportBean(
+                            startNode = node, name = split[0],
                             timeInfo = split[1],
-                            room = split[2], teacher = "", cDay = cDay)
+                            room = split[2], teacher = "", cDay = cDay
+                        )
                     } else {
-                        ImportBean(startNode = node, name = split[0],
+                        ImportBean(
+                            startNode = node, name = split[0],
                             timeInfo = split[1],
-                            room = "", teacher = split[2], cDay = cDay)
+                            room = "", teacher = split[2], cDay = cDay
+                        )
                     }
                 } else {
-                    ImportBean(startNode = node, name = split[0],
+                    ImportBean(
+                        startNode = node, name = split[0],
                         timeInfo = split[1],
-                        room = split[3], teacher = split[2], cDay = cDay)
+                        room = split[3], teacher = split[2], cDay = cDay
+                    )
                 }
             }
             courses.add(temp)
@@ -98,9 +111,14 @@ class ZhengFangParser(source: String, private val type: Int) : Parser(source) {
                     if (split[preIndex - 1] in Common.courseProperty) {
                         hasTypeFlag = true
                     }
-                    val temp = ImportBean(startNode = node, name = if (hasTypeFlag && preIndex >= 2) split[preIndex - 2] else split[preIndex - 1],
+                    val temp = ImportBean(
+                        startNode = node,
+                        name = if (hasTypeFlag && preIndex >= 2) split[preIndex - 2] else split[preIndex - 1],
                         timeInfo = split[preIndex],
-                        room = "", teacher = "", cDay = cDay)
+                        room = "",
+                        teacher = "",
+                        cDay = cDay
+                    )
                     if ((i - preIndex - 2) == 1) {
                         temp.teacher = split[preIndex + 1]
                     } else {
@@ -117,9 +135,14 @@ class ZhengFangParser(source: String, private val type: Int) : Parser(source) {
                 if (split[preIndex - 1] in Common.courseProperty) {
                     hasTypeFlag = true
                 }
-                val temp = ImportBean(startNode = node, name = if (hasTypeFlag && preIndex >= 2) split[preIndex - 2] else split[preIndex - 1],
+                val temp = ImportBean(
+                    startNode = node,
+                    name = if (hasTypeFlag && preIndex >= 2) split[preIndex - 2] else split[preIndex - 1],
                     timeInfo = split[preIndex],
-                    room = "", teacher = "", cDay = cDay)
+                    room = "",
+                    teacher = "",
+                    cDay = cDay
+                )
                 if ((i - preIndex) == 1) {
                     temp.teacher = split[preIndex + 1]
                 } else {
@@ -155,7 +178,13 @@ class ZhengFangParser(source: String, private val type: Int) : Parser(source) {
         return result
     }
 
-    private fun parseTime(importBean: ImportBean, time: String, startNode: Int, source: String, courseName: String): Array<Int> {
+    private fun parseTime(
+        importBean: ImportBean,
+        time: String,
+        startNode: Int,
+        source: String,
+        courseName: String
+    ): Array<Int> {
         val result = Array(5) { 0 }
         //按顺序分别为day, step, startWeek, endWeek, type
 
@@ -197,12 +226,20 @@ class ZhengFangParser(source: String, private val type: Int) : Parser(source) {
             time.contains("第${startNode}节") -> {
                 step = 1
             }
+            time.contains(Common.singleNodePattern) -> {
+                val accStartNode = Common.singleNodePattern.find(time)!!.groupValues[1].toInt()
+                if (startNode != accStartNode) {
+                    importBean.startNode = accStartNode
+                    step = 1
+                }
+            }
         }
         if (step == 0) {
             val matchResult = Common.nodePattern.find(time)
             if (matchResult != null) {
                 val nodeInfo = matchResult.value
-                val nodes = nodeInfo.substring(1, nodeInfo.length - 1).split("-".toRegex()).dropLastWhile { it.isEmpty() }
+                val nodes =
+                    nodeInfo.substring(1, nodeInfo.length - 1).split("-".toRegex()).dropLastWhile { it.isEmpty() }
                 if (nodes.isNotEmpty()) {
                     importBean.startNode = nodes[0].toInt()
                 }
@@ -242,9 +279,17 @@ class ZhengFangParser(source: String, private val type: Int) : Parser(source) {
 
 }
 
-data class ImportBean(var name: String,
-                      var timeInfo: String,
-                      var teacher: String?,
-                      var room: String?,
-                      var startNode: Int,
-                      var cDay: Int = 0)
+data class ImportBean(
+    var name: String,
+    var timeInfo: String,
+    var teacher: String?,
+    var room: String?,
+    var startNode: Int,
+    var cDay: Int = 0
+)
+
+fun main() {
+    val file = File("/Users/yzune/YZune_Git/database/python/51156.浙江大学.html")
+    val parser = ZhengFangParser(file.readText(), 0)
+    parser.saveCourse()
+}

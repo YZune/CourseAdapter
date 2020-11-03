@@ -56,7 +56,20 @@ class GDBYXYParser(source: String) : Parser(source) {
                         val day: Int = Common.getWeekFromChinese("周" + mTimeInfo.group(2))    //该课程的是星期几（7代表星期天）参数范围：1 - 7
 
                         //temp[brstr的索引值+3]获取教室地方
-                        val room: String = temp[index + 3]                                                      //教室
+                        val room: String                                                                        //教室
+                        val strArray = temp[index + 3].trim().split("_".toRegex()).toTypedArray()
+
+                        room = when{
+                            temp[index + 3] == "" ->{
+                                ""
+                            }
+                            else ->{
+                                strArray[0] + "-" + strArray[1]
+                            }
+                        }
+
+                        println(room)
+
                         //temp[brstr的索引值+1]获取教师名字
                         val teacher: String = temp[index + 1]                                                   //老师
                         //println(teacher)
@@ -124,7 +137,7 @@ fun main() {
     // 示例中用了相对路径，Windows 下可能需要修改
     // 建议从项目外引用 html 文件
     // 提交时一定不要上传 html 文件，涉及隐私问题
-    val file = File("E:\\SoftwareDevelopment\\Github\\CourseAdapter\\课程表2.html")
+    val file = File("E:\\SoftwareDevelopment\\Html\\课程表2.html")
     val parser = GDBYXYParser(file.readText())
     parser.saveCourse()
 }

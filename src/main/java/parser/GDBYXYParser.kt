@@ -2,6 +2,8 @@ package main.java.parser
 
 import Common
 import bean.Course
+import com.google.gson.JsonArray
+import jdk.nashorn.internal.parser.JSONParser
 import org.jsoup.Jsoup
 import parser.Parser
 import java.io.File
@@ -59,9 +61,19 @@ class GDBYXYParser(source: String) : Parser(source) {
                         val room: String                                                                        //教室
                         val strArray = temp[index + 3].trim().split("_".toRegex()).toTypedArray()
 
+                        //test让控制台输出数组内容
+                        /*print("strArray:[")
+                        for (str in strArray){
+                            print("'" + str + "',")
+                        }
+                        print("]")*/
+
                         room = when{
-                            temp[index + 3] == "" ->{
+                            temp[index + 3] == "" ->{//针对地点为空的情况
                                 ""
+                            }
+                            temp[index + 3].indexOf("_") == -1 ->{//针对类似 temp[index + 3]:"西534定向越野71 " + temp[index + 4]:"田径场",若不存在"_"
+                                temp[index + 3]+temp[index + 4]
                             }
                             else ->{
                                 strArray[0] + "-" + strArray[1]

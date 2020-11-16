@@ -3,6 +3,9 @@ package main.java.parser
 import bean.Course
 import org.jsoup.Jsoup
 import parser.Parser
+import java.util.regex.Pattern
+
+val pattern = Pattern.compile("第[0-9]*周")
 
 class NFUParser(source: String):Parser(source) {
 
@@ -10,8 +13,10 @@ class NFUParser(source: String):Parser(source) {
 
         val courseList = arrayListOf<Course>()
         val courseStrList = arrayListOf<String>()
-        var name:String =""
+        var courseStr:String
+        var name:String
         var dayOfWeek:Int
+        var type:Int
         var startWeek:Int
         var endWeek:Int
         var startNode:Int
@@ -46,7 +51,27 @@ class NFUParser(source: String):Parser(source) {
             }
 
             for (c in courseStrList){
-                val info = c.split(" ")
+                courseStr = c
+                if (courseStr.contains("单")){
+                    type = 1
+                    courseStr = courseStr.replace(" 单周","")
+                }else if (courseStr.contains("双")){
+                    type =2
+                    courseStr = courseStr.replace(" 双周","")
+                }else{
+                    type = 0
+                }
+
+                if (courseStr.contains("第")){
+                    val matcher = pattern.matcher(courseStr)
+                    if (matcher.find()){
+                        val onlyWeek = matcher.group()
+                        val onlyWeekNum = onlyWeek.subSequence(1,onlyWeek.length-1)
+                        courseStr = courseStr.replace("第${onlyWeekNum}周","${onlyWeekNum}-${onlyWeekNum}周")
+                    }
+                }
+
+                val info = courseStr.split(" ")
 
                 val weekInfo = info[0].trim('周')
                 val nodeInfo = info[1].trim('节')
@@ -61,8 +86,14 @@ class NFUParser(source: String):Parser(source) {
                 endWeek = week[1].toInt()
 
                 teacher = info[2]
-                place = info[3]
-                dayOfWeek = info[4].toInt()
+                if (info.size < 5){
+                    place = ""
+                    dayOfWeek = info[3].toInt()
+                }else{
+                    place = info[3]
+                    dayOfWeek = info[4].toInt()
+                }
+
 
                 courseList.add(
                     Course(
@@ -70,10 +101,10 @@ class NFUParser(source: String):Parser(source) {
                         teacher = teacher, day = dayOfWeek,
                         startNode = startNode, endNode = endNode,
                         startWeek = startWeek, endWeek = endWeek,
-                        type = 0
+                        type = type
                     )
                 )
-                //print("$name  ${startWeek}-${endWeek}周  星期${dayOfWeek}  ${startNode}-${endNode}节  ${teacher}  ${place}\n")
+                //print("$name  ${startWeek}-${endWeek}周  ${type}  星期${dayOfWeek}  ${startNode}-${endNode}节  ${teacher}  ${place}\n")
             }
         }
         return courseList

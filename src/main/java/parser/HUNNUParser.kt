@@ -25,7 +25,7 @@ class HUNNUParser(source: String?) : Parser(source!!) {
         var endWeek: Int
         var type: Int
         var i = 0
-        while (i < 90) {
+        while (i <= 90) {
             val element = document.getElementById("TD" + i + "_0")
             if (element != null) {
                 val str = element.attr("title").replace(";;;", ";")

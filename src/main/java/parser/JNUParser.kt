@@ -1,5 +1,6 @@
 package main.java.parser
 
+import Common
 import bean.Course
 import org.jsoup.Jsoup
 import parser.Parser
@@ -9,48 +10,48 @@ class JNUParser(source: String) : Parser(source) {
     override fun generateCourseList(): List<Course> {
         val courseList = arrayListOf<Course>()
 
-        val doc = Jsoup.parse(source)
+        val xml = source.substringAfter("</html>")
+        val doc = Jsoup.parse(xml)
         val frame = doc.getElementById("oReportCell")
         val table = frame.getElementsByClass("a8")
         val trs = table[0].getElementsByTag("tr").subList(3, 10)
 
         var courseName: String
         var room: String
-        var step: Int
-        val courseNames = mutableMapOf<String, Int>()
+        var type: Int
         for (i in trs.indices) {
             val tds = trs[i].getElementsByTag("td")
-            if (tds.isEmpty()) continue
-
+            if (tds.isNullOrEmpty()) continue
             for (j in tds.indices) {
-                val str = tds[j].getElementsByTag("div").text()
+                val str = tds[j].getElementsByTag("div").text()?.trim()
                 if (str.isNullOrEmpty() || j == 0) continue
-
-                room = str.substringBefore(' ')
-                courseName = str.substringAfter('：').substringBefore('(')
-
-                if (courseNames.contains(courseName)) {
-                    step = courseNames[courseName]!!
-                    courseNames[courseName] = step + 1
+                type = when {
+                    str.contains("单周") -> {
+                        1
+                    }
+                    str.contains("双周") -> {
+                        2
+                    }
+                    else -> {
+                        0
+                    }
+                }
+                room = if (type != 0) {
+                    str.substringAfter('周').trim().substringBefore(' ')
                 } else {
-                    courseNames[courseName] = 1
-                    courseList.add(
-                        Course(
-                            name = courseName, day = i + 1, room = room, teacher = "", startNode = j,
-                            endNode = j + 1, startWeek = 1, endWeek = 18, type = 0
-                        )
-                    )
+                    str.substringBefore(' ')
+                }
+                courseName = str.substringAfter("课程：").substringBeforeLast('(')
+                val c = Course(
+                    name = courseName, day = i + 1, room = room, teacher = "", startNode = j,
+                    endNode = j, startWeek = 1, endWeek = 18, type = type
+                )
+                if (courseList.isNotEmpty() && Common.judgeContinuousCourse(courseList.last(), c)) {
+                    courseList.last().endNode++
+                } else {
+                    courseList.add(c)
                 }
             }
-        }
-        var c: Course
-        for (i in courseList.indices) {
-            c = courseList[i]
-            step = courseNames[c.name]!! - 1
-            courseList[i] = Course(
-                c.name, c.day, c.room, "", c.startNode,
-                c.startNode + step, 1, 18, 0
-            )
         }
         return courseList
     }

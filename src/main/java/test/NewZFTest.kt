@@ -5,11 +5,11 @@ import parser.Parser
 import java.io.File
 
 fun main() {
-    val path = "/Users/yzune/YZune_Git/database/python/schools/华中师范大学"
+    val path = "/Users/yzune/YZune_Git/database/python/schools/东北大学秦皇岛分校/38916.东北大学秦皇岛分校.html"
     val file = File(path)
     val fs = file.listFiles()
-//    (NewZFParser(file.readText()) as Parser).saveCourse()
-//    println()
+    (NewZFParser(file.readText()) as Parser).saveCourse()
+    println()
     fs?.forEach {
         if (it.isDirectory) return
         val content = it.readText()

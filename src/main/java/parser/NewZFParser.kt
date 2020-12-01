@@ -112,6 +112,21 @@ class NewZFParser(source: String) : Parser(source) {
                 }
             }
         }
+
+        val table2 = doc.getElementById("sycjlrtabGrid")
+        if (table2 != null) {
+            val trs2 = table2.getElementsByTag("tr")
+            for (tr in trs2) {
+                val tds = tr.getElementsByTag("td")
+                for (td in tds) {
+                    val kcmc = td.attr("aria-describedby", "sycjlrtabGrid_kcmc")
+                    val timeAndPlace = td.attr("aria-describedby", "sycjlrtabGrid_sksjdd")
+                    if (kcmc == null || timeAndPlace == null) continue
+                    val title = td.attr("aria-describedby", "sycjlrtabGrid_xmmc")
+                }
+            }
+        }
+
         return courseList
     }
 

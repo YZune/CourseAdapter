@@ -38,15 +38,18 @@ abstract class Parser(val source: String) {
         }
     }
 
-    fun saveCourse() {
+    fun saveCourse(printOut: Boolean = true): Int {
         convertCourse()
-        println("成功导入 ${_baseList.size} 门课程")
-        _baseList.forEach {
-            println(it)
+        if (printOut) {
+            println("成功导入 ${_baseList.size} 门课程")
+            _baseList.forEach {
+                println(it)
+            }
+            _detailList.forEach {
+                println(it)
+            }
         }
-        _detailList.forEach {
-            println(it)
-        }
+        return _baseList.size
     }
 
 }

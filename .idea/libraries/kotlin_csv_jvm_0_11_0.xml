@@ -1,0 +1,17 @@
+<component name="libraryTable">
+  <library name="kotlin-csv-jvm-0.11.0" type="repository">
+    <properties maven-id="com.github.doyaaaaaken:kotlin-csv-jvm:0.11.0" />
+    <CLASSES>
+      <root url="jar://$MAVEN_REPOSITORY$/com/github/doyaaaaaken/kotlin-csv-jvm/0.11.0/kotlin-csv-jvm-0.11.0.jar!/" />
+      <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/kotlin-stdlib-jdk8/1.3.72/kotlin-stdlib-jdk8-1.3.72.jar!/" />
+      <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/kotlin-stdlib/1.3.72/kotlin-stdlib-1.3.72.jar!/" />
+      <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/annotations/13.0/annotations-13.0.jar!/" />
+      <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/kotlin-stdlib-jdk7/1.3.72/kotlin-stdlib-jdk7-1.3.72.jar!/" />
+      <root url="jar://$MAVEN_REPOSITORY$/io/github/microutils/kotlin-logging/1.7.9/kotlin-logging-1.7.9.jar!/" />
+      <root url="jar://$MAVEN_REPOSITORY$/org/slf4j/slf4j-api/1.7.29/slf4j-api-1.7.29.jar!/" />
+      <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/kotlin-stdlib-common/1.3.72/kotlin-stdlib-common-1.3.72.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>

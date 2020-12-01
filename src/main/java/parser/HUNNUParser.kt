@@ -77,7 +77,6 @@ class HUNNUParser(source: String?) : Parser(source!!) {
             }
             i++
         }
-
         return list
     }
 }

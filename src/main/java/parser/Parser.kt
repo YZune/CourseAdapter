@@ -32,6 +32,7 @@ abstract class Parser(val source: String) {
                     step = course.endNode - course.startNode + 1,
                     startWeek = course.startWeek, endWeek = course.endWeek,
                     type = course.type, startNode = course.startNode,
+                    credit = course.credit,
                     tableId = 0
                 )
             )

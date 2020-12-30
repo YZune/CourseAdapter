@@ -4,7 +4,6 @@ import bean.Course
 
 class SYSUParser(source: String) : Parser(source) {
     override fun generateCourseList(): List<Course> {
-        println("Hello!")
         val courseList = ArrayList<Course>()
 
         val doc = org.jsoup.Jsoup.parse(source)
@@ -50,7 +49,7 @@ class SYSUParser(source: String) : Parser(source) {
                     infoStrings.add(infoString)
                 }
 
-                courseList.add(parseInfoStrings(infoStrings, i+1, i+rowspan, countDay))
+                courseList.add(parseInfoStrings(infoStrings, i + 1, i + rowspan, countDay))
             }
         }
         return courseList

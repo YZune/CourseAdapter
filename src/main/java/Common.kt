@@ -1,37 +1,74 @@
 import bean.Course
 import bean.CourseBaseBean
 import bean.WeekBean
+import java.security.MessageDigest
 
 object Common {
 
+    const val TYPE_HELP = "help"
     const val TYPE_ZF = "zf"
     const val TYPE_ZF_1 = "zf_1"
     const val TYPE_ZF_NEW = "zf_new"
     const val TYPE_URP = "urp"
+    const val TYPE_UMOOC = "umooc"
     const val TYPE_URP_NEW = "urp_new"
+    const val TYPE_URP_NEW_AJAX = "urp_new_ajax"
     const val TYPE_QZ = "qz"
     const val TYPE_QZ_OLD = "qz_old"
+    const val TYPE_QZ_OLD_JLICT = "jlict_qz_old"
+    const val TYPE_QZ_OLD_CCSU = "ccsu_qz_old" // 长沙学院
     const val TYPE_QZ_CRAZY = "qz_crazy"
     const val TYPE_QZ_BR = "qz_br"
+    const val TYPE_QZ_BJFU = "qz_bjfu"
+    const val TYPE_QZ_NJUST = "qz_njust"
     const val TYPE_QZ_WITH_NODE = "qz_with_node"
+    const val TYPE_QZ_SINGLE_NODE = "qz_single_node"
+    const val TYPE_QZ_2017 = "qz_2017" // 华南农业大学
     const val TYPE_CF = "cf"
+    const val TYPE_VATUU = "vatuu"
     const val TYPE_PKU = "pku" // 北京大学
     const val TYPE_BNUZ = "bnuz" // 北京师范大学珠海分校
     const val TYPE_HNIU = "hniu" // 湖南信息职业技术学院
     const val TYPE_HNUST = "hnust" // 湖南科技大学
-    const val TYPE_AHNU = "ahnu" //安徽师范大学
-    const val TYPE_NewAHNU = "newahnu" //安徽师范大学
-    const val TYPE_GZHUYJS = "gzhuyjs" //广州大学研究生
-
+    const val TYPE_JNU = "jnu" // 暨南大学
+    const val TYPE_HUNNU = "hunnu" // 湖南师范大学
+    const val TYPE_ECJTU = "ecjtu" // 华东交通大学
+    const val TYPE_SHU = "shu"// 上海大学
+    const val TYPE_SIT = "sit"// 上海应用技术大学
+    const val TYPE_XATU = "xatu_shuwei" // 西安工业大学
+    const val TYPE_XSYU = "xsyu_shuwei" // 西安石油大学
+    const val TYPE_UESTC = "uestc_shuwei" // 电子科技大学
+    const val TYPE_SIAS = "sias_shuwei" // 郑州西亚斯学院
+    const val TYPE_SNUT = "snut_shuwei" // 陕西理工大学
+    const val TYPE_AHNU = "ahnu" // 安徽师范大学
+    const val TYPE_SCAU = "scau" // 四川农业大学
+    const val TYPE_SDU = "sdu" // 山东大学
+    const val TYPE_JZ = "jz" // 金智教务
+    const val TYPE_JZ_1 = "jz_1"
+    const val TYPE_HAUST = "haust" // 河南科技大学
+    const val TYPE_HIT = "hit" // 哈尔滨工业大学
+    const val TYPE_SYSU = "sysu" // 中山大学
+    const val TYPE_LOGIN = "login" // 模拟登录方式
     const val TYPE_MAINTAIN = "maintain" // 维护状态，暂不可用
+    const val TYPE_CHANGZHOU = "changzhou"
+    const val TYPE_SICNU = "sicnu" // 四川师范大学
+    const val TYPE_WHUT = "whut" // 武汉理工大学
+    const val TYPE_HFU = "hfu" // 合肥工业大学
+    const val TYPE_CUMTB = "cumtb" // 中国矿业大学（北京）
+    const val TYPE_TJU = "tju" // 同济大学
+    const val TYPE_GZHUYJS = "gzhuyjs" // 广州大学研究生
+    const val TYPE_XYTC = "xytc" // 襄阳职业技术学院
+    const val TYPE_FDU = "fdu" // 复旦大学
 
     val nodePattern = Regex("""\(\d{1,2}[-]*\d*节""")
     val nodePattern1 = Regex("""\d{1,2}[~]*\d*节""")
     val nodePattern2 = Regex("""(^\d.*)节""")
+    val singleNodePattern = Regex("""第(\d+)节""")
 
     val weekPattern = Regex("""\{第\d{1,2}[-]*\d*周""")
     val weekPattern1 = Regex("""\d{1,2}[-]*\d*""")
     val weekPattern2 = Regex("""\d{1,2}周""")
+    val typedWeekPattern = Regex("""第(\d+)-(\d+)[单|双]?周""")
 
 
     val chineseWeekList = arrayOf("", "周一", "周二", "周三", "周四", "周五", "周六", "周日")
@@ -87,6 +124,28 @@ object Common {
     )
 
     private val headerNodePattern = Regex("""第.*节""")
+
+    private fun toHex(byteArray: ByteArray): String {
+        //转成16进制后是32字节
+        return with(StringBuilder()) {
+            byteArray.forEach {
+                val hex = it.toInt() and (0xFF)
+                val hexStr = Integer.toHexString(hex)
+                if (hexStr.length == 1) {
+                    append("0").append(hexStr)
+                } else {
+                    append(hexStr)
+                }
+            }
+            toString()
+        }
+    }
+
+    fun sha1(str: String): String {
+        val digest = MessageDigest.getInstance("SHA-1")
+        val result = digest.digest(str.toByteArray())
+        return toHex(result)
+    }
 
     fun weekIntList2WeekBeanList(input: MutableList<Int>): MutableList<WeekBean> {
         var reset = 0
@@ -227,6 +286,7 @@ object Common {
             else -> -1
         }
     }
+
     fun containNodeInt(nodeStr: String): Int {
         if(nodeStr.contains('一'))
             return 1
@@ -269,4 +329,64 @@ object Common {
                 && pre.type == current.type
                 && pre.endNode == current.startNode - 1
     }
+
+    fun judgeWeekCourse(pre: Course, current: Course): Boolean {
+        return pre.name == current.name
+                && pre.day == current.day
+                && pre.room == current.room
+                && pre.teacher == current.teacher
+                && pre.startNode == current.startNode
+                && pre.endNode == current.endNode
+    }
+
+    fun mergeWeekCourse(tmpList: ArrayList<Course>, courseList: ArrayList<Course>) {
+        val len = tmpList.size
+        val weekList = mutableListOf<Int>()
+        tmpList.sortedWith(
+            compareBy(
+                { it.day },
+                { it.name },
+                { it.startTime },
+                { it.teacher },
+                { it.startWeek })
+        ).forEachIndexed { i, course ->
+            if (courseList.isEmpty()) {
+                courseList.add(course)
+                weekList.add(course.startWeek)
+            } else {
+                val pre = courseList.last()
+                if (Common.judgeWeekCourse(pre, course) && i != len - 1) {
+                    weekList.add(course.startWeek)
+                } else {
+                    if (Common.judgeWeekCourse(pre, course) && i == len - 1) {
+                        weekList.add(course.startWeek)
+                    }
+                    Common.weekIntList2WeekBeanList(weekList).forEachIndexed { index, weekBean ->
+                        if (index == 0) {
+                            pre.startWeek = weekBean.start
+                            pre.endWeek = weekBean.end
+                            pre.type = weekBean.type
+                        } else {
+                            courseList.add(
+                                pre.copy(
+                                    startWeek = weekBean.start,
+                                    endWeek = weekBean.end,
+                                    type = weekBean.type
+                                )
+                            )
+                        }
+                    }
+                    if (i != len - 1) {
+                        weekList.clear()
+                        weekList.add(course.startWeek)
+                        courseList.add(course)
+                    }
+                    if (!Common.judgeWeekCourse(pre, course) && i == len - 1) {
+                        courseList.add(course)
+                    }
+                }
+            }
+        }
+    }
+
 }

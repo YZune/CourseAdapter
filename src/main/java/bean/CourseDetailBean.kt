@@ -10,5 +10,6 @@ data class CourseDetailBean(
     var startWeek: Int,
     var endWeek: Int,
     var type: Int,
-    var tableId: Int
+    var tableId: Int,
+    var credit: Float = 0f
 )

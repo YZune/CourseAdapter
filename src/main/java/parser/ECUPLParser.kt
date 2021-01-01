@@ -3,12 +3,13 @@ package main.java.parser
 import bean.Course
 import org.jsoup.Jsoup
 import main.java.parser.supwisdom.SupwisdomParser
-import java.time.DayOfWeek
-import java.time.LocalDate
+import java.util.Calendar
 import kotlin.math.min
 
 class ECUPLParser(source: String) : SupwisdomParser(source) {
-    private var year = LocalDate.now().year
+    private val cal = Calendar.getInstance()
+    private var year = cal.get(Calendar.YEAR)
+    private var finalWeekFits = false
     private var firstWeek = 0
     private var maxWeek = 20
 
@@ -77,7 +78,7 @@ class ECUPLParser(source: String) : SupwisdomParser(source) {
         val weekStr = a[6]
         return if (weekStr.substring(0, firstWeek - 1).indexOf('1') < 0) {
             weekStr.substring(startIndex = firstWeek - 2, endIndex = min(firstWeek - 2 + maxWeek + 1, weekStr.length))
-        } else if (LocalDate.parse("${year}-12-31").dayOfWeek == DayOfWeek.SATURDAY) {
+        } else if (finalWeekFits) {
             ("0".repeat(53 - firstWeek + 2) + weekStr).substring(0, maxWeek + 1)
         } else {
             ("0".repeat(53 - firstWeek + 1) + weekStr).substring(0, maxWeek + 1)
@@ -102,6 +103,8 @@ class ECUPLParser(source: String) : SupwisdomParser(source) {
             val (yearStr) = yearMatchResult.destructured
             year = yearStr.toInt()
         }
+        cal.set(year, 11, 31)
+        finalWeekFits = cal.get(Calendar.DAY_OF_WEEK) == Calendar.SATURDAY
 
         val weekMatchResult = Regex("""table0\.marshalTable\((.+?),(.+?),(.+?)\);""").find(source)
         if (weekMatchResult != null) {

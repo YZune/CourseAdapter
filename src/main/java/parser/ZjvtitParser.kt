@@ -136,10 +136,26 @@ class ZjvtitParser(source: String) : Parser(source) {
         for (node in divide) {
             if(node==node.split("-")[0]){
                 //第18周
-                startWeek = node.split("第")[1].split("周")[0].toInt()
-                endWeek = startWeek
-                betweenWeeks.add(Pair(0,Pair(startWeek,endWeek)))
-                return betweenWeeks
+                if(node.indexOf("第")==-1 && node.indexOf("周")==-1){
+                    startWeek =  node.toInt()
+                    endWeek = startWeek
+                    betweenWeeks.add(Pair(0,Pair(startWeek,endWeek)))
+                }
+                else if(node.indexOf("第")==-1 && node.indexOf("周")!=-1){
+                    startWeek =  node.split("周")[0].toInt()
+                    endWeek = startWeek
+                    betweenWeeks.add(Pair(0,Pair(startWeek,endWeek)))
+                }
+                else if(node.indexOf("第")!=-1 && node.indexOf("周")==-1){
+                    startWeek =  node.split("第")[1].toInt()
+                    endWeek = startWeek
+                    betweenWeeks.add(Pair(0,Pair(startWeek,endWeek)))
+                }else if(node.indexOf("第")!=-1 && node.indexOf("周")!=-1){
+                    startWeek = node.split("第")[1].split("周")[0].toInt()
+                    endWeek = startWeek
+                    betweenWeeks.add(Pair(0,Pair(startWeek,endWeek)))
+                }
+
             }
             else {
                 //8-18 第8-18周 8-18周 第8-18 18周 8-18(单周)

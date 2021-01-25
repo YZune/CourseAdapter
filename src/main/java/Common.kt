@@ -72,6 +72,7 @@ object Common {
 
 
     val chineseWeekList = arrayOf("", "周一", "周二", "周三", "周四", "周五", "周六", "周日")
+    val englishAbbrWeekList = arrayOf("","mon","tue","wed","thu","fri","sat","sun")
     val otherHeader = arrayOf("时间", "星期一", "星期二", "星期三", "星期四", "星期五", "星期六", "星期日", "早晨", "上午", "下午", "晚上")
     val courseProperty = arrayOf(
         "任选",

@@ -4,6 +4,7 @@ import Common
 import bean.Course
 import bean.CourseBaseBean
 import bean.CourseDetailBean
+import main.java.bean.TimeTable
 
 abstract class Parser(val source: String) {
 
@@ -11,6 +12,9 @@ abstract class Parser(val source: String) {
     private val _detailList: ArrayList<CourseDetailBean> = arrayListOf()
 
     abstract fun generateCourseList(): List<Course>
+
+    // TimeTable中的name属性将起到标识作用，如果在数据库中发现同名时间表，则不再覆盖写入
+    open fun generateTimeTable(): TimeTable? = null
 
     private fun convertCourse() {
         generateCourseList().forEach { course ->

@@ -8,5 +8,6 @@ fun main() {
     ECUPLParser(source).apply {
         generateCourseList().forEach { println(it) }
         saveCourse()
+        println(generateTimeTable())
     }
 }

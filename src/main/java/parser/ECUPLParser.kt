@@ -1,6 +1,8 @@
 package main.java.parser
 
 import bean.Course
+import main.java.bean.TimeDetail
+import main.java.bean.TimeTable
 import org.jsoup.Jsoup
 import main.java.parser.supwisdom.SupwisdomParser
 import java.util.Calendar
@@ -52,6 +54,23 @@ class ECUPLParser(source: String) : SupwisdomParser(source) {
         }
 
         return courseDetailsMap
+    }
+
+    override fun generateTimeTable(): TimeTable {
+        val timeList = mutableListOf<TimeDetail>()
+        val doc = Jsoup.parse(source)
+        doc.select(".listTable")[0].select("tr")[0].select("td").forEachIndexed { i, td ->
+            if (i > 0) {
+                timeList.add(
+                    TimeDetail(
+                        node = i,
+                        startTime = td.text().substringBefore("-"),
+                        endTime = td.text().substringAfter("-")
+                    )
+                )
+            }
+        }
+        return TimeTable(name = "华东政法大学", timeList = timeList)
     }
 
     override fun getGroup(a: List<String>): String {

@@ -139,6 +139,7 @@ class THUParser(source: String) : Parser(source) {
                                 "" -> 0.0f
                                 else -> courseInfo.number.last().toFloat() - 48 // char to float: ASCII
                             },
+                            note = courseInfo.notes,
                             startTime = when (courseInfo.time) {
                                 "" -> ""
                                 else -> courseInfo.time.substringBefore("-")

@@ -140,7 +140,7 @@ class ECUPLParser(source: String) : SupwisdomParser(source) {
 
         superCourseList.forEach {
             val dataCourseName = it.name.substringBeforeLast('(')
-            val courseNumber = it.name.substringAfterLast('(').removeSurrounding("", ")")
+            val courseNumber = it.name.substringAfterLast('(').substringBefore(')')
             val courseDetails = courseDetailsMap[courseNumber]
             if (courseDetails == null) {
                 println("未找到课程 $courseNumber 的详细信息")

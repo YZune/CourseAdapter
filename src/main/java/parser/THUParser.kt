@@ -39,6 +39,14 @@ class THUParser(source: String) : Parser(source) {
 
     var currentSemester = ""
 
+    fun String.timeZeroPad(): String {
+        return if (this.length == 4 && this[0].isDigit() && this[1] == ':' && this[2].isDigit() && this[3].isDigit()) {
+            "0$this"
+        } else {
+            this
+        }
+    }
+
     fun parseWeeks(courseWeeks: String, totalWeeks: Int = 16): MutableList<Int> {
         return when (courseWeeks) {
             "全周" -> 1..totalWeeks
@@ -167,8 +175,8 @@ class THUParser(source: String) : Parser(source) {
                                     endWeek = week.end,
                                     type = week.type,
                                     note = courseNotes,
-                                    startTime = startTime,
-                                    endTime = endTime
+                                    startTime = startTime.timeZeroPad(),
+                                    endTime = endTime.timeZeroPad()
                                 )
                             )
                         }
@@ -226,11 +234,11 @@ class THUParser(source: String) : Parser(source) {
                     note = courseInfo.notes,
                     startTime = when (courseInfo.time) {
                         "" -> ""
-                        else -> courseInfo.time.substringBefore("-")
+                        else -> courseInfo.time.substringBefore("-").timeZeroPad()
                     },
                     endTime = when (courseInfo.time) {
                         "" -> ""
-                        else -> courseInfo.time.substringAfter("-")
+                        else -> courseInfo.time.substringAfter("-").timeZeroPad()
                     }
                 )
                 val weekIntList = parseWeeks(courseInfo.weeks.trim())

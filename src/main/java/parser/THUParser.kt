@@ -7,16 +7,48 @@ import main.java.bean.TimeTable
 
 class THUParser(source: String) : Parser(source) {
 
-    fun parseWeeks(courseWeeks: String): List<WeekBean> {
-        when (courseWeeks) {
-            "全周" -> return listOf(WeekBean(1, 16, 0))
-            "前八周" -> return listOf(WeekBean(1, 8, 0))
-            "后八周" -> return listOf(WeekBean(9, 16, 0))
-            "单周" -> return listOf(WeekBean(1, 15, 1))
-            "双周" -> return listOf(WeekBean(2, 16, 2))
+    val startNodeMap = mapOf(1 to 1, 2 to 3, 3 to 6, 4 to 8, 5 to 10, 6 to 12)
+    val endNodeMap = mapOf(1 to 2, 2 to 5, 3 to 7, 4 to 9, 5 to 11, 6 to 14)
+
+    data class Reschedule(
+        val fromWeek: Int,
+        val fromDay: Int,
+        val toWeek: Int = 0,
+        val toDay: Int = 0
+    )
+
+    val rescheduleDatabase = mapOf(
+        "2020-2021-1" to listOf(
+            Reschedule(fromWeek = 3, fromDay = 5, toWeek = 2, toDay = 7),
+            Reschedule(fromWeek = 3, fromDay = 6),
+            Reschedule(fromWeek = 3, fromDay = 7),
+            Reschedule(fromWeek = 3, fromDay = 4, toWeek = 4, toDay = 6)
+        ),
+        "2020-2021-2" to listOf(
+            Reschedule(fromWeek = 7, fromDay = 1),
+            Reschedule(fromWeek = 9, fromDay = 6),
+            Reschedule(fromWeek = 9, fromDay = 7),
+            Reschedule(fromWeek = 10, fromDay = 5),
+            Reschedule(fromWeek = 10, fromDay = 6, toWeek = 11, toDay = 2),
+            Reschedule(fromWeek = 10, fromDay = 7, toWeek = 11, toDay = 3),
+            Reschedule(fromWeek = 11, fromDay = 1, toWeek = 11, toDay = 4),
+            Reschedule(fromWeek = 16, fromDay = 6),
+            Reschedule(fromWeek = 16, fromDay = 7)
+        )
+    )
+
+    var currentSemester = ""
+
+    fun parseWeeks(courseWeeks: String, totalWeeks: Int = 16): MutableList<Int> {
+        return when (courseWeeks) {
+            "全周" -> 1..totalWeeks
+            "前八周" -> 1..8
+            "后八周" -> 9..16
+            "单周" -> 1..totalWeeks step 2
+            "双周" -> 2..totalWeeks step 2
             else -> {
                 if (!courseWeeks.endsWith("周")) {
-                    return listOf(WeekBean(0, 0, -1))
+                    return mutableListOf()
                 }
                 val courseWeeksRanges = courseWeeks
                     .removePrefix("第")
@@ -31,9 +63,9 @@ class THUParser(source: String) : Parser(source) {
                         else -> weekIntList.add(it.toInt())
                     }
                 }
-                return Common.weekIntList2WeekBeanList(weekIntList)
+                weekIntList
             }
-        }
+        }.toMutableList()
     }
 
     override fun generateTimeTable(): TimeTable {
@@ -61,18 +93,26 @@ class THUParser(source: String) : Parser(source) {
         val script = Regex("""setInitValue\(\).+setInitValue""", RegexOption.DOT_MATCHES_ALL)
             .find(source)!!.value
 
+        currentSemester = Regex("""name="p_xnxq" value="([\d\-]+?)"""").find(source)?.groupValues?.get(1) ?: ""
+
+        val courseList = mutableListOf<Course>()
+
         val secondaryCoursesDetails = mutableMapOf<String, Pair<String, String>>() // name to <teacher, notes>
         val secondaryCoursesHeader = Regex("""var gridColumns = \[(.+)];""", RegexOption.DOT_MATCHES_ALL)
             .find(source)?.groupValues?.get(1)
         val secondaryCoursesData = Regex("""var gridData = \[(.+)];""", RegexOption.DOT_MATCHES_ALL)
             .find(source)?.groupValues?.get(1)
         var secondaryCoursesNameIndex = 0
+        var secondaryCoursesWeeksIndex = 0
+        var secondaryCoursesLocationIndex = 0
         var secondaryCoursesTeacherIndex = 0
         var secondaryCoursesNotesIndex = 0
         secondaryCoursesHeader?.let { header ->
             header.split(",").forEachIndexed { i, s ->
                 when {
                     "课程名" in s -> secondaryCoursesNameIndex = i
+                    "上课周次" in s -> secondaryCoursesWeeksIndex = i
+                    "上课地点" in s -> secondaryCoursesLocationIndex = i
                     "任课教师" in s -> secondaryCoursesTeacherIndex = i
                     "选课文字说明" in s -> secondaryCoursesNotesIndex = i
                 }
@@ -82,13 +122,60 @@ class THUParser(source: String) : Parser(source) {
             Regex("""\[([^\[\]]+)]""").findAll(data).forEach { array ->
                 val items = array.groupValues[1].split(",")
                 val courseName = items[secondaryCoursesNameIndex].trim().removeSurrounding("\"")
-                val courseTeacher = items[secondaryCoursesTeacherIndex].trim().removeSurrounding("\"")
+                var courseTeacher = items[secondaryCoursesTeacherIndex].trim().removeSurrounding("\"")
                 val courseNotes = items[secondaryCoursesNotesIndex].trim().removeSurrounding("\"")
-                secondaryCoursesDetails[courseName] = Pair(courseTeacher, courseNotes)
+                if ("北大" !in array.groupValues[1]) {
+                    secondaryCoursesDetails[courseName] = Pair(courseTeacher, courseNotes)
+                } else if (currentSemester in listOf("2020-2021-2")) {
+                    val courseLocation = items[secondaryCoursesLocationIndex].trim().removeSurrounding("\"")
+                    courseTeacher = Regex("""教师:(.+?);""").find(courseNotes)?.groupValues?.get(1)
+                        ?: courseTeacher
+                    val totalWeeks = when (currentSemester) {
+                        "2020-2021-2" -> 15; else -> 16
+                    }
+                    val weekShift = when (currentSemester) {
+                        "2020-2021-1" -> 1; "2020-2021-2" -> 2; else -> 0
+                    }
+                    val fallbackWeeks = parseWeeks(
+                        courseWeeks = items[secondaryCoursesWeeksIndex].trim().removeSurrounding("\""),
+                        totalWeeks = totalWeeks
+                    )
+                    Regex("""上课时间:(.+)""").find(courseNotes)!!.groupValues[1].split(";").forEach { time ->
+                        val weeks = when {
+                            "(" in time -> parseWeeks(
+                                courseWeeks = time.substringAfter("(").substringBefore(")"),
+                                totalWeeks = fallbackWeeks.last()
+                            )
+                            else -> fallbackWeeks
+                        }
+                        val (_, day, startTime, endTime) = Regex("""周(\S)(\d{1,2}:\d{2})-(\d{1,2}:\d{2})""")
+                            .find(time)!!.groupValues
+                        if (currentSemester == "2020-2021-2") when (day) {
+                            "五" -> weeks.remove(8)
+                            "六" -> weeks.remove(8)
+                        }
+                        Common.weekIntList2WeekBeanList(weeks.map { it + weekShift }.toMutableList()).forEach { week ->
+                            courseList.add(
+                                Course(
+                                    name = courseName,
+                                    day = Common.getNodeInt(day),
+                                    room = courseLocation,
+                                    teacher = courseTeacher,
+                                    startNode = 0,
+                                    endNode = 0,
+                                    startWeek = week.start,
+                                    endWeek = week.end,
+                                    type = week.type,
+                                    note = courseNotes,
+                                    startTime = startTime,
+                                    endTime = endTime
+                                )
+                            )
+                        }
+                    }
+                }
             }
         }
-
-        val courseList = mutableListOf<Course>()
 
         data class CourseDetails(
             var number: String = "",
@@ -103,8 +190,7 @@ class THUParser(source: String) : Parser(source) {
 
         var courseInfo = CourseDetails()
 
-        val startNodeMap = mapOf("1" to 1, "2" to 3, "3" to 6, "4" to 8, "5" to 10, "6" to 12)
-        val endNodeMap = mapOf("1" to 2, "2" to 5, "3" to 7, "4" to 9, "5" to 11, "6" to 14)
+        val rescheduleData = rescheduleDatabase.getOrDefault(currentSemester, listOf())
 
         script.lines().forEach { line ->
             if ("getElementById" in line) {
@@ -123,31 +209,61 @@ class THUParser(source: String) : Parser(source) {
                         }
                     }
                 }
-                parseWeeks(courseInfo.weeks.trim()).forEach { week ->
+                val course = Course(
+                    name = courseInfo.name,
+                    day = day.toInt(),
+                    room = courseInfo.location,
+                    teacher = courseInfo.teacher,
+                    startNode = startNodeMap.getOrDefault(node.toInt(), 0),
+                    endNode = endNodeMap.getOrDefault(node.toInt(), 0),
+                    startWeek = 0,
+                    endWeek = 0,
+                    type = -1,
+                    credit = when (courseInfo.number) {
+                        "" -> 0.0f
+                        else -> courseInfo.number.last().toFloat() - 48 // char to float: ASCII
+                    },
+                    note = courseInfo.notes,
+                    startTime = when (courseInfo.time) {
+                        "" -> ""
+                        else -> courseInfo.time.substringBefore("-")
+                    },
+                    endTime = when (courseInfo.time) {
+                        "" -> ""
+                        else -> courseInfo.time.substringAfter("-")
+                    }
+                )
+                val weekIntList = parseWeeks(courseInfo.weeks.trim())
+                rescheduleData.forEach {
+                    if (course.day == it.toDay && it.toWeek in weekIntList) {
+                        weekIntList.remove(it.toWeek)
+                    }
+                    if (course.day == it.fromDay && it.fromWeek in weekIntList) {
+                        weekIntList.remove(it.fromWeek)
+                        if (it.toWeek > 0) {
+                            if (course.day == it.toDay && it.toWeek !in weekIntList) {
+                                // 目标日的课程已被清除
+                                weekIntList.add(it.toWeek)
+                            } else {
+                                courseList.add(
+                                    course.copy(
+                                        day = it.toDay,
+                                        startWeek = it.toWeek,
+                                        endWeek = it.toWeek,
+                                        type = 0
+                                    )
+                                )
+                            }
+                        }
+                    }
+                }
+                weekIntList.sort()
+                Common.weekIntList2WeekBeanList(weekIntList).forEach { week ->
                     courseList.add(
-                        Course(
-                            name = courseInfo.name,
-                            day = day.toInt(),
-                            room = courseInfo.location,
-                            teacher = courseInfo.teacher,
-                            startNode = startNodeMap.getOrDefault(node, 0),
-                            endNode = endNodeMap.getOrDefault(node, 0),
+                        course.copy(
                             startWeek = week.start,
                             endWeek = week.end,
-                            type = week.type,
-                            credit = when (courseInfo.number) {
-                                "" -> 0.0f
-                                else -> courseInfo.number.last().toFloat() - 48 // char to float: ASCII
-                            },
-                            note = courseInfo.notes,
-                            startTime = when (courseInfo.time) {
-                                "" -> ""
-                                else -> courseInfo.time.substringBefore("-")
-                            },
-                            endTime = when (courseInfo.time) {
-                                "" -> ""
-                                else -> courseInfo.time.substringAfter("-")
-                            }
+                            type = week.type
                         )
                     )
                 }
@@ -160,7 +276,7 @@ class THUParser(source: String) : Parser(source) {
                         0 -> courseInfo.name = result.groupValues[1].trim()
                         1 -> {
                             var details = result.groupValues[1].trim()
-                            if (details.startsWith("(")) {
+                            if (details.startsWith("(") && details.count { it == '(' } >= 2) {
                                 topic = details.substringBefore(")") + ")"
                                 details = details.substringAfter(")")
                             }
@@ -168,7 +284,7 @@ class THUParser(source: String) : Parser(source) {
                             details.split("；").forEach {
                                 when {
                                     "周" in it -> courseInfo.weeks = it
-                                    "时间" in it -> courseInfo.time = it.removePrefix("时间：")
+                                    "时间：" in it -> courseInfo.time = it.removePrefix("时间：")
                                     courseInfo.location.isBlank() -> courseInfo.location = it.trim()
                                 }
                             }

@@ -276,7 +276,7 @@ class THUParser(source: String) : Parser(source) {
                         0 -> courseInfo.name = result.groupValues[1].trim()
                         1 -> {
                             var details = result.groupValues[1].trim()
-                            if (details.startsWith("(")) {
+                            if (details.startsWith("(") && details.count { it == '(' } >= 2) {
                                 topic = details.substringBefore(")") + ")"
                                 details = details.substringAfter(")")
                             }

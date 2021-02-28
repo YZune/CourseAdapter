@@ -289,7 +289,7 @@ data class ImportBean(
 )
 
 fun main() {
-    val file = File("/Users/yzune/YZune_Git/database/python/51156.浙江大学.html")
+    val file = File("./苏大医学.html")
     val parser = ZhengFangParser(file.readText(), 0)
     parser.saveCourse()
 }

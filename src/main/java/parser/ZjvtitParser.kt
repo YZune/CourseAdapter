@@ -20,7 +20,7 @@ class ZjvtitParser(source: String) : Parser(source) {
             val courseName = courseInfo.select("span:not([class])").text().trim()
             if(courseName !in courseNames){
                 courseNames.add(courseName)
-                courseBaseBeans.add(CourseBaseBean(courseNum,courseName,"",0))
+                courseBaseBeans.add(CourseBaseBean(courseNum,courseName,"",0,""))
                 courseNum++
             }
         }

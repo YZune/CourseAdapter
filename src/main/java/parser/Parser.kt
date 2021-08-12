@@ -4,6 +4,7 @@ import Common
 import bean.Course
 import bean.CourseBaseBean
 import bean.CourseDetailBean
+import main.java.Generator
 import main.java.bean.TimeTable
 
 abstract class Parser(val source: String) {
@@ -25,7 +26,9 @@ abstract class Parser(val source: String) {
                     CourseBaseBean(
                         id = id, courseName = course.name,
                         color = "",
-                        tableId = 0
+                        tableId = 0,
+                        note = course.note,
+                        credit = course.credit
                     )
                 )
             }
@@ -53,6 +56,7 @@ abstract class Parser(val source: String) {
             _detailList.forEach {
                 println(it)
             }
+            Generator(_baseList,_detailList)
         }
         return _baseList.size
     }

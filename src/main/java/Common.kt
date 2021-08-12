@@ -390,4 +390,14 @@ object Common {
         }
     }
 
+
+    /**
+     * 星期字符串转 Int
+     * @author [Xeu](https://github.com/ThankRain)
+     * @return Int
+     */
+    fun getDayInt(day: String): Int {
+        return getNodeInt(day.replace("星期",""))
+    }
+
 }

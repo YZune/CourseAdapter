@@ -3,7 +3,6 @@ package main.java.parser
 import Common.getDayInt
 import bean.Course
 import org.jsoup.Jsoup
-import org.jsoup.select.Evaluator
 import parser.Parser
 
 class JXAUParser(source: String) : Parser(source){

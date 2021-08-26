@@ -10,7 +10,7 @@ class JXAUParser(source: String) : Parser(source){
         val courseList = arrayListOf<Course>()
         val doc = Jsoup.parse(source)
         val table = doc.getElementById("KebiaoTable1")
-        var trs = table.getElementsByTag("tr").subList(2,9)
+        val trs = table.getElementsByTag("tr").subList(2,9)
         for(tr in trs) {
             val day = getDayInt(tr.getElementsByClass("left1")[0].text())
             val tds = tr.getElementsByTag("td")

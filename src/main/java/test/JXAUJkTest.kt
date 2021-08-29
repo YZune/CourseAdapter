@@ -5,7 +5,6 @@ import main.java.parser.JXAUJkParser
 fun main() {
     val username = ""
     val password = ""
-    val source = "$username,$password"
-    val parser = JXAUJkParser(source)
+    val parser = JXAUJkParser(username, password)
     parser.saveCourse()
 }

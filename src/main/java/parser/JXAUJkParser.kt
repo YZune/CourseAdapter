@@ -99,13 +99,9 @@ class JXAUJkParser(private val username:String, private val password:String) : P
 
     private fun getSemesterId(cookies: Map<String, String>, gid: String) : String {
         val semesterCon = Jsoup.connect("http://jwgl.jxau.edu.cn/PaikeManage/KebiaoInfo/GetStudentkebiao/$gid")
-            .ignoreContentType(true)
             .cookies(cookies)
             .header("User-Agent", "Mozilla/5.0 (compatible; MSIE 9.0; Windows NT 6.1; WOW64; Trident/5.0))")
-            .data("treeroot", "treeroot")
-            .data("method", "POST")
-            .data("node", "treeroot")
-            .method(Connection.Method.POST)
+            .method(Connection.Method.GET)
         val rawSemesterBody = semesterCon.execute().body()
         val semesterReg = Pattern.compile("""var Dqxq = '(\d+)';""")
         val semesterMatch = semesterReg.matcher(rawSemesterBody)

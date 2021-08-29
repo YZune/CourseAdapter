@@ -12,10 +12,8 @@ import java.util.regex.Pattern
 * @author mrwoowoo
 * @description 江西农业大学接口版倒入，内容更完整
  */
-class JXAUJkParser(source: String) : Parser(source) {
+class JXAUJkParser(private val username:String, private val password:String) : Parser("") {
     override fun generateCourseList(): List<Course> {
-        val username = source.split(",")[0]
-        val password = source.split(",")[1]
         val courseList = arrayListOf<Course>()
 
         val loginCon = Jsoup.connect("http://jwgl.jxau.edu.cn/User/CheckLogin")
@@ -68,15 +66,6 @@ class JXAUJkParser(source: String) : Parser(source) {
         return courseList
     }
 
-    data class SemesterBean(
-        val id : String,
-        val nodeType : String,
-        val text : String,
-        val leaf : String,
-        val children : String,
-        val iconCls : String
-    )
-
     data class CourseTableInfo(
         val Message : String,
         val Result : String,
@@ -109,9 +98,7 @@ class JXAUJkParser(source: String) : Parser(source) {
     )
 
     private fun getSemesterId(cookies: Map<String, String>, gid: String) : String {
-
-        val parser = Gson()
-        val semesterCon = Jsoup.connect("http://jwgl.jxau.edu.cn/Common/BaseData/GetKsxqTreeForJxrw/$gid")
+        val semesterCon = Jsoup.connect("http://jwgl.jxau.edu.cn/PaikeManage/KebiaoInfo/GetStudentkebiao/$gid")
             .ignoreContentType(true)
             .cookies(cookies)
             .header("User-Agent", "Mozilla/5.0 (compatible; MSIE 9.0; Windows NT 6.1; WOW64; Trident/5.0))")
@@ -119,9 +106,14 @@ class JXAUJkParser(source: String) : Parser(source) {
             .data("method", "POST")
             .data("node", "treeroot")
             .method(Connection.Method.POST)
-        val rawSemesterList = semesterCon.execute().body()
-        val semesterJson = parser.fromJson(rawSemesterList, Array<SemesterBean>::class.java)
-        return semesterJson[0].id
+        val rawSemesterBody = semesterCon.execute().body()
+        val semesterReg = Pattern.compile("""var Dqxq = '(\d+)';""")
+        val semesterMatch = semesterReg.matcher(rawSemesterBody)
+        if(semesterMatch.find()) {
+            return semesterMatch.group(1)
+        }else{
+            throw Exception("学期错误")
+        }
     }
 
     private fun getCourseTable(cookies: Map<String, String>, gid: String, semesterId: String) : List<CourseTableData>{

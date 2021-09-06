@@ -62,7 +62,7 @@ class THUParser(source: String) : Parser(source) {
         return when (courseWeeks) {
             "全周" -> 1..totalWeeks
             "前八周" -> 1..8
-            "后八周" -> 9..16
+            "后八周" -> 9..totalWeeks
             "单周" -> 1..totalWeeks step 2
             "双周" -> 2..totalWeeks step 2
             else -> {

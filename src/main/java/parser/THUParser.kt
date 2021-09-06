@@ -34,6 +34,13 @@ class THUParser(source: String) : Parser(source) {
             Reschedule(fromWeek = 11, fromDay = 1, toWeek = 11, toDay = 4),
             Reschedule(fromWeek = 16, fromDay = 6),
             Reschedule(fromWeek = 16, fromDay = 7)
+        ),
+        "2021-2022-1" to listOf(
+            Reschedule(fromWeek = 2, fromDay = 1, toWeek = 1, toDay = 6),
+            Reschedule(fromWeek = 2, fromDay = 2, toWeek = 2, toDay = 7),
+            Reschedule(fromWeek = 3, fromDay = 5, toWeek = 4, toDay = 6),
+            Reschedule(fromWeek = 3, fromDay = 6),
+            Reschedule(fromWeek = 3, fromDay = 7)
         )
     )
 
@@ -47,7 +54,11 @@ class THUParser(source: String) : Parser(source) {
         }
     }
 
-    fun parseWeeks(courseWeeks: String, totalWeeks: Int = 16): MutableList<Int> {
+    fun parseWeeks(courseWeeks: String, totalWeeks: Int? = null): MutableList<Int> {
+        val totalWeeks = totalWeeks ?: when (currentSemester) {
+            "2021-2022-1" -> 15
+            else -> 16
+        }
         return when (courseWeeks) {
             "全周" -> 1..totalWeeks
             "前八周" -> 1..8
@@ -134,7 +145,7 @@ class THUParser(source: String) : Parser(source) {
                 val courseNotes = items[secondaryCoursesNotesIndex].trim().removeSurrounding("\"")
                 if ("北大" !in array.groupValues[1]) {
                     secondaryCoursesDetails[courseName] = Pair(courseTeacher, courseNotes)
-                } else if (currentSemester in listOf("2020-2021-2")) {
+                } else if (currentSemester in listOf("2020-2021-2", "2021-2022-1")) {
                     val courseLocation = items[secondaryCoursesLocationIndex].trim().removeSurrounding("\"")
                     courseTeacher = Regex("""教师:(.+?);""").find(courseNotes)?.groupValues?.get(1)
                         ?: courseTeacher
@@ -148,7 +159,11 @@ class THUParser(source: String) : Parser(source) {
                         courseWeeks = items[secondaryCoursesWeeksIndex].trim().removeSurrounding("\""),
                         totalWeeks = totalWeeks
                     )
-                    Regex("""上课时间:(.+)""").find(courseNotes)!!.groupValues[1].split(";").forEach { time ->
+                    Regex("""上课时间:(.+)""").find(courseNotes)!!.groupValues[1].split(
+                        when (currentSemester) {
+                            "2020-2021-2" -> ";"; "2021-2022-1" -> ","; else -> ","
+                        }
+                    ).forEach { time ->
                         val weeks = when {
                             "(" in time -> parseWeeks(
                                 courseWeeks = time.substringAfter("(").substringBefore(")"),
@@ -161,6 +176,13 @@ class THUParser(source: String) : Parser(source) {
                         if (currentSemester == "2020-2021-2") when (day) {
                             "五" -> weeks.remove(8)
                             "六" -> weeks.remove(8)
+                        } else if (currentSemester == "2021-2022-1") when (day) {
+                            "一", "三", "四" -> weeks.remove(4)
+                            "二" -> {
+                                weeks.remove(2)
+                                weeks.remove(4)
+                            }
+                            "五", "六", "日" -> weeks.remove(3)
                         }
                         Common.weekIntList2WeekBeanList(weeks.map { it + weekShift }.toMutableList()).forEach { week ->
                             courseList.add(

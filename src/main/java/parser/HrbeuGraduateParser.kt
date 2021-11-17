@@ -3,11 +3,16 @@ package main.java.parser
 import bean.Course
 import parser.Parser
 
-//哈尔滨工程大学研究生院
+/**
+ * 哈尔滨工程大学研究生院
+ *
+ * 仅根据哈尔滨工程大学研究生院课表解析而来，不代表全部可用
+ */
 class HrbeuGraduateParser(source: String) : Parser(source) {
-    private val brTrim = Regex("(^<br>)|(<br>$)")
-    private val numRange = Regex("(\\d+)(-(\\d+))?")
-    private val teach = Regex("[(（](.*)[)）]")
+    private val brTrimRegex = Regex("(^<br>)|(<br>$)")
+    private val numRangeRegex = Regex("(\\d+)(-(\\d+))?")
+    private val teachRegex = Regex("[(（](.*)[)）]")
+    private val gradeRegex = Regex("([\\d]+班)")
 
     override fun generateCourseList(): List<Course> {
         val doc = org.jsoup.Jsoup.parse(source)
@@ -18,13 +23,13 @@ class HrbeuGraduateParser(source: String) : Parser(source) {
             val tds = tr.getElementsByTag("td")
             var countDay = 1
             for (i in 1 until tds.size) {
-                val courseSource = tds[i].html().replace(brTrim, "")
+                val courseSource = tds[i].html().replace(brTrimRegex, "")
                 if (courseSource.length <= 1) {
                     countDay++
                     continue
                 }
 
-                for (course in courseSource.split("<br><br>")) {
+                for (course in courseSource.split(Regex("<br>\\s*<br>"))) {
                     val split = course.split("<br>")
                     if (split.isEmpty() || split.size < 5) continue
                     courseList.addAll(parseCourseInfo(split, countDay))
@@ -44,19 +49,24 @@ class HrbeuGraduateParser(source: String) : Parser(source) {
         for (it in split) {
             splitEnd.add(it.substringAfter(':'))
         }
-
         //获取信息
-        val macher = numRange.find(splitEnd[2])
-        val startNode: Int = macher!!.groupValues[1].toInt()
-        val endNode: Int = macher.groupValues[3].toInt()
+        //增加班级文字
+        val grade: MatchResult? = gradeRegex.find(splitEnd[1])
+        if (grade != null) {
+            splitEnd[0] += "(" + grade.groupValues[1] + ")";
+        }
+
+        val numMacher = numRangeRegex.find(splitEnd[2])
+        val startNode: Int = numMacher!!.groupValues[1].toInt()
+        val endNode: Int = numMacher.groupValues[3].toInt()
         if ("一班多师" in splitEnd[1]) {
             for (item in splitEnd[3].split(";")) {
-                numRange.findAll(item).forEach {
+                numRangeRegex.findAll(item).forEach {
                     val values = it.groupValues
                     val startWeek: String = values[1].trim()
                     val endWeek: String = if (values[3].trim() == "") values[1] else values[3].trim()
 
-                    val teacher = teach.find(item)!!.groupValues[1]
+                    val teacher = teachRegex.find(item)!!.groupValues[1]
                     resCourseList.add(
                         Course(
                             splitEnd[0],
@@ -67,14 +77,16 @@ class HrbeuGraduateParser(source: String) : Parser(source) {
                             endNode,
                             startWeek.toInt(),
                             endWeek.toInt(),
-                            0
+                            0,
+                            0f,
+                            split.subList(5, split.size).joinToString()
                         )
                     )
                 }
             }
         } else {
             val teacher = splitEnd[1].substringBeforeLast("(").trim()
-            numRange.findAll(splitEnd[3]).forEach {
+            numRangeRegex.findAll(splitEnd[3]).forEach {
                 val values = it.groupValues
                 val startWeek: String = values[1].trim()
                 val endWeek: String = if (values[3].trim() == "") values[1] else values[3].trim()
@@ -88,7 +100,9 @@ class HrbeuGraduateParser(source: String) : Parser(source) {
                         endNode,
                         startWeek.toInt(),
                         endWeek.toInt(),
-                        0
+                        0,
+                        0f,
+                        split.subList(5, split.size).joinToString()
                     )
                 )
             }

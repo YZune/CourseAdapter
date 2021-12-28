@@ -47,21 +47,23 @@ public class HUATParser extends Parser {
             int node_level_index = 0;
             //由于HUAT的课表排列是横向在HTML中给出的,故采用该方式来获得具体课程的节数. 0-4 分别指定1-2,3-4,....节课
             for (Element horizontal : horizontal_list) {
+
                 Elements td_list = horizontal.select("td");
-                int current_day = 0; // 范围:0-6 指代星期一到星期天
+                int current_day = 1; // 范围:1-7 指代星期一到星期天
 
                 for (Element td_node : td_list) {
-                    if (!td_node.hasAttr("align")){
+                    if (!td_node.hasAttr("align")){  // 去掉表格元素
                         if (td_node.children().size() != 0 && td_node.child(0).is("table")) {
-
                             Elements tables = td_node.select("table");
                             Element info;
                             for (Element table : tables) {
                                 info = table.selectFirst("tr").selectFirst("td");
                                 addCourse(Objects.requireNonNull(info).text(), node_level_index, current_day, courses);
                             }
+                            current_day++;
+                        } else if (td_node.children().size() == 0) {
+                            current_day++;
                         }
-                        current_day++;
                     } //有align的都是表格描述之类的
                 }
                 node_level_index++;
@@ -78,10 +80,15 @@ public class HUATParser extends Parser {
     }
 
     void addCourse(String infos,int node_level, int current_day, ArrayList<Course> courses) {
-
+        String[] elements = infos.split("\\s+");
+        String[] week = removeChineseCharacter(elements[elements.length - 1]).split("-");  //无论什么情况周数都在elements的最后
         int start_node, end_node, start_week, end_week;
+        String class_name = elements[0], class_room, teacher;
 
-        if (node_level != 4) {
+        start_week = Integer.parseInt(week[0]);
+        end_week = Integer.parseInt(week[1]);
+
+        if (node_level != 4) {                                  //node_level = 4 时是指晚上3节课的情况
             end_node = 2 * (node_level + 1);
             start_node = end_node - 1;
         } else {
@@ -89,27 +96,45 @@ public class HUATParser extends Parser {
             start_node = end_node - 2;
         }
 
-        String[] elements = infos.split("\\s+");
-
-        String[] week;
-
-        if (elements.length > 3) {
-            week = removeChineseCharacter(elements[elements.length - 1]).split("-");
-        } else {
-            week = removeChineseCharacter(elements[2]).split("-");
+        switch (elements.length) {
+            case 5: // 正常完整课表情况 名称+教师+2/3H+教室+周数
+                class_room = elements[3];
+                teacher = elements[1];
+                break;
+            case 4:                     // 缺少教师/教室信息
+                if (elements[elements.length - 2].contains("H")) { //判断元素数组中倒数第二个是否是"2H或3H,以确定elements中缺少的元素"
+                    // 无教室情况
+                    class_room = "未知教室";
+                    teacher = elements[1];
+                } else {
+                    // 无教师情况
+                    teacher = "未知教师";
+                    class_room = elements[2];
+                }
+                break;
+            default:
+                int length = elements.length;
+                if (length > 5) { // 多教师情况
+                    class_room = elements[length - 2];
+                    int[] name_range = {1,length - 1 - 1 - 1 - 1};
+                    StringBuilder teacherBuilder = new StringBuilder();
+                    for (int i = name_range[0]; i <= name_range[1]; i++) {
+                        teacherBuilder.append(" ").append(elements[i]);
+                    }
+                    teacher = String.valueOf(teacherBuilder);
+                } else { // 多少有点问题 \ 缺少教室和教师信息
+                    teacher = "未知教师";
+                    class_room = "未知教室";
+                }
+                
+                break;
         }
-
-
-
-        start_week = Integer.parseInt(week[0]);
-        end_week = Integer.parseInt(week[1]);
 
         courses.add(
                 new Course(
-                        elements[0], current_day, elements[3],
-                        elements[1], start_node, end_node,
+                        class_name, current_day, class_room,
+                        teacher, start_node, end_node,
                         start_week, end_week, 0, 1f, "", "", ""));
-
     }
 
 

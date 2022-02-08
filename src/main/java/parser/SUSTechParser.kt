@@ -100,6 +100,11 @@ class SUSTechParser(
             throw Exception("数据格式不匹配")
         }
 
+        var noteCourseClass = ""
+        if (arr[1].contains('-')) {
+            noteCourseClass = arr[1].substring(arr[1].indexOf('-') + 1)
+        }
+
         val day: Int
         pattern = Pattern.compile("xq(\\d+)_jc\\d+")
         matcher = pattern.matcher(pos)
@@ -137,7 +142,20 @@ class SUSTechParser(
                 startWeek = Integer.parseInt(weekNum)
                 endWeek = startWeek
             }
-            result.add(Course(name, day, arr[3], arr[0], startNode, endNode, startWeek, endWeek, type))
+            result.add(
+                Course(
+                    name,
+                    day,
+                    arr[3],
+                    arr[0],
+                    startNode,
+                    endNode,
+                    startWeek,
+                    endWeek,
+                    type,
+                    note = noteCourseClass
+                )
+            )
         }
         return result
     }

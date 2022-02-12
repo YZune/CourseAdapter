@@ -63,6 +63,20 @@ class THUParser(source: String) : Parser(source) {
                 Reschedule(fromWeek = 3, fromDay = 6),
                 Reschedule(fromWeek = 3, fromDay = 7)
             )
+            "2021-2022-2" -> listOf(
+                Reschedule(fromWeek = 7, fromDay = 1, toWeek = 6, toDay = 6),
+                Reschedule(fromWeek = 7, fromDay = 2),
+                Reschedule(fromWeek = 9, fromDay = 6),
+                Reschedule(fromWeek = 9, fromDay = 7),
+                Reschedule(fromWeek = 10, fromDay = 7),
+                Reschedule(fromWeek = 11, fromDay = 1),
+                Reschedule(fromWeek = 11, fromDay = 2, toWeek = 11, toDay = 6),
+                Reschedule(fromWeek = 11, fromDay = 3),
+                Reschedule(fromWeek = 11, fromDay = 4),
+                Reschedule(fromWeek = 15, fromDay = 5),
+                Reschedule(fromWeek = 16, fromDay = 6),
+                Reschedule(fromWeek = 16, fromDay = 7)
+            )
             else -> listOf()
         }
     }
@@ -74,7 +88,7 @@ class THUParser(source: String) : Parser(source) {
         }
     }
 
-    val supportedPKUSemesters = listOf("2020-2021-2", "2021-2022-1")
+    val supportedPKUSemesters = listOf("2020-2021-2", "2021-2022-1", "2021-2022-2")
 
     fun getPKUTotalWeeks(): Int {
         return when (semester) {
@@ -95,6 +109,7 @@ class THUParser(source: String) : Parser(source) {
         return when (semester) {
             "2020-2021-2" -> ";"
             "2021-2022-1" -> ","
+            "2021-2022-2" -> "；"
             else -> ","
         }
     }
@@ -109,6 +124,12 @@ class THUParser(source: String) : Parser(source) {
                 1, 3, 4 -> listOf(4)
                 2 -> listOf(2, 4)
                 5, 6, 7 -> listOf(3)
+                else -> listOf()
+            }
+            "2021-2022-2" -> when (day) {
+                // 清明和端午安排未出
+                1, 2, 3, 4, 5 -> listOf(11)
+                7 -> listOf(10)
                 else -> listOf()
             }
             else -> listOf()
@@ -310,16 +331,24 @@ class THUParser(source: String) : Parser(source) {
             courseWeeks = details.weeks,
             totalWeeks = getPKUTotalWeeks()
         )
-        Regex("""上课时间:(.+)""").find(details.notes)!!.groupValues[1]
+        Regex("""时间:(.+)""").find(details.notes)!!.groupValues[1]
             .split(getPKUCourseNotesSeparator()).forEach { time ->
+                if (":" !in time) {  // notes
+                    return@forEach
+                }
+                val lastSegment = time.trim().substringAfterLast(' ')
                 val weeks = when {
                     "(" in time -> parseWeeks(
                         courseWeeks = time.substringAfter("(").substringBefore(")"),
                         totalWeeks = fallbackWeeks.last()
                     )
+                    lastSegment.endsWith("周") -> parseWeeks(
+                        courseWeeks = lastSegment,
+                        totalWeeks = fallbackWeeks.last()
+                    )
                     else -> fallbackWeeks
                 }
-                val (_, dayStr, startTime, endTime) = Regex("""周(\S)(\d{1,2}:\d{2})-(\d{1,2}:\d{2})""")
+                val (_, dayStr, startTime, endTime) = Regex("""周(\S)\s*(\d{1,2}:\d{2})-(\d{1,2}:\d{2})""")
                     .find(time)!!.groupValues
                 val day = Common.getNodeInt(dayStr)
                 getPKUHolidayWeeks(day).forEach { week -> weeks.remove(week); }

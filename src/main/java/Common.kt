@@ -59,6 +59,7 @@ object Common {
     const val TYPE_GZHUYJS = "gzhuyjs" // 广州大学研究生
     const val TYPE_XYTC = "xytc" // 襄阳职业技术学院
     const val TYPE_FDU = "fdu" // 复旦大学
+    const val TYPE_CQUPT = "cqupt" // 重庆邮电大学
 
     val nodePattern = Regex("""\(\d{1,2}[-]*\d*节""")
     val nodePattern1 = Regex("""\d{1,2}[~]*\d*节""")

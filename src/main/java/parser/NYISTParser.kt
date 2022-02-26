@@ -41,7 +41,8 @@ class NYISTParser(source: String) : Parser(source) {
                     type = 2
                 }
                 weekList.forEach{
-                    val weeks=it.substringAfter("[").substringBefore("]").split("-")
+                    val newit=it.substringAfter("第").substringBefore("周")
+                    val weeks=newit.substringAfter("[").substringBefore("]").split("-")
                     val startWeek = weeks.first().toInt()
                     val endWeek = weeks.last().toInt()
                     courseList.add(Course(name = courseName, day = day, room = room, teacher = teacher,
@@ -54,7 +55,7 @@ class NYISTParser(source: String) : Parser(source) {
     }
 }
 fun main() {
-    val file = File("D:/project/NYISTOSUG/CourseWeb/CR/我的课表.html")
+    val file = File("D:/project/NYISTOSUG/CourseWeb/DP/我的课表.html")
     val parser = NYISTParser(file.readText())
     parser.saveCourse()
 }

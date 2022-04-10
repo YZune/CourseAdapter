@@ -1,6 +1,6 @@
 package parser.qz
 
 class QzCrazyParser(source: String) : QzParser(source) {
-    override val tableName: String
+    override val webTableName: String
         get() = "kbcontent1"
 }

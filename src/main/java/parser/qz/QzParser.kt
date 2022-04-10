@@ -8,7 +8,7 @@ open class QzParser(source: String) : Parser(source) {
 
     private val sundayFirstDayMap = arrayOf(0, 7, 1, 2, 3, 4, 5, 6)
     private var sundayFirst = false
-    open val tableName = "kbcontent"
+    open val webTableName = "kbcontent"
 
     open fun parseCourseName(infoStr: String): String {
         return Jsoup.parse(infoStr.substringBefore("<font").trim()).text()
@@ -84,7 +84,7 @@ open class QzParser(source: String) : Parser(source) {
                 day++
                 val divs = td.getElementsByTag("div")
                 for (div in divs) {
-                    val courseElements = div.getElementsByClass(tableName)
+                    val courseElements = div.getElementsByClass(webTableName)
                     if (courseElements.text().isBlank()) {
                         continue
                     }

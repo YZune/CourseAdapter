@@ -17,6 +17,14 @@ abstract class Parser(val source: String) {
     // TimeTable中的name属性将起到标识作用，如果在数据库中发现同名时间表，则不再覆盖写入
     open fun generateTimeTable(): TimeTable? = null
 
+    open fun getTableName(): String? = null
+
+    open fun getNodes(): Int? = null
+
+    open fun getStartDate(): String? = null
+
+    open fun getMaxWeek(): Int? = null
+
     private fun convertCourse() {
         generateCourseList().forEach { course ->
             var id = Common.findExistedCourseId(_baseList, course.name)

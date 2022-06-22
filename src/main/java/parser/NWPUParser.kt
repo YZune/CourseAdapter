@@ -38,9 +38,8 @@ import parser.Parser
  * 更新后，课程表爬取的大体步骤是：先登入翱翔门户，获取 SESSION 与 __pstsid__，携带这两个 cookie 进入教务系统，进行进一步的爬取。
  * 进入教务系统后：
  * 1）通过接口 semesterIndexUrl 获取 Semester 信息，维护 Semester (ID->Name) 的 Map；
- * 2）通过接口 semesterIndexUrl 获取 dataId 信息，供后续调接口时使用；
- * 3）通过接口 courseTableStdUrl 获取 personId 信息，供后续调接口时使用；
- * 4）获取到这两个 ID 后，分别调用教务系统 API：
+ * 2）通过接口 courseTableStdUrl 获取 dataId, personId 信息，供后续调接口时使用；
+ * 3）获取到这两个 ID 后，分别调用教务系统 API：
  *    /student/for-std/course-table/semester/$semesterId/print-data
  *    /student/for-std/course-table/get-data
  *    a) get-data   获取到的信息主要用于更新 Parser 的内部属性，如 _tableName, _maxWeek, _startDate 等

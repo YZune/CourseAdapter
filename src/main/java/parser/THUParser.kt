@@ -9,8 +9,8 @@ class THUParser(source: String) : Parser(source) {
 
     // 固定数据
 
-    val startNodeMap = mapOf(1 to 1, 2 to 3, 3 to 6, 4 to 8, 5 to 10, 6 to 12)
-    val endNodeMap = mapOf(1 to 2, 2 to 5, 3 to 7, 4 to 9, 5 to 11, 6 to 14)
+    val startNodeMap = arrayOf(0, 1, 3, 6, 8, 10, 12)
+    val endNodeMap = arrayOf(0, 2, 5, 7, 9, 11, 14)
 
     override fun generateTimeTable(): TimeTable {
         return TimeTable(
@@ -35,124 +35,40 @@ class THUParser(source: String) : Parser(source) {
 
     // 学期数据
 
-    lateinit var semester: String
+    var semester = ""
 
-    fun getRescheduleData(): List<Reschedule> {
+    fun getRescheduleData(): Array<Reschedule> {
         return when (semester) {
-            "2020-2021-1" -> listOf(
-                Reschedule(fromWeek = 3, fromDay = 5, toWeek = 2, toDay = 7),
+            "2022-2023-1" -> arrayOf(
+                Reschedule(fromWeek = 1, fromDay = 1),
                 Reschedule(fromWeek = 3, fromDay = 6),
                 Reschedule(fromWeek = 3, fromDay = 7),
-                Reschedule(fromWeek = 3, fromDay = 4, toWeek = 4, toDay = 6)
-            )
-            "2020-2021-2" -> listOf(
-                Reschedule(fromWeek = 7, fromDay = 1),
-                Reschedule(fromWeek = 9, fromDay = 6),
-                Reschedule(fromWeek = 9, fromDay = 7),
-                Reschedule(fromWeek = 10, fromDay = 5),
-                Reschedule(fromWeek = 10, fromDay = 6, toWeek = 11, toDay = 2),
-                Reschedule(fromWeek = 10, fromDay = 7, toWeek = 11, toDay = 3),
-                Reschedule(fromWeek = 11, fromDay = 1, toWeek = 11, toDay = 4),
-                Reschedule(fromWeek = 16, fromDay = 6),
+                Reschedule(fromWeek = 4, fromDay = 1, toWeek = 4, toDay = 6),
+                Reschedule(fromWeek = 4, fromDay = 2),
+                Reschedule(fromWeek = 4, fromDay = 3),
+                Reschedule(fromWeek = 4, fromDay = 4),
+                Reschedule(fromWeek = 4, fromDay = 5),
                 Reschedule(fromWeek = 16, fromDay = 7)
             )
-            "2021-2022-1" -> listOf(
-                Reschedule(fromWeek = 2, fromDay = 1, toWeek = 1, toDay = 6),
-                Reschedule(fromWeek = 2, fromDay = 2, toWeek = 2, toDay = 7),
-                Reschedule(fromWeek = 3, fromDay = 5, toWeek = 4, toDay = 6),
-                Reschedule(fromWeek = 3, fromDay = 6),
-                Reschedule(fromWeek = 3, fromDay = 7)
-            )
-            "2021-2022-2" -> listOf(
-                Reschedule(fromWeek = 7, fromDay = 1, toWeek = 6, toDay = 6),
-                Reschedule(fromWeek = 7, fromDay = 2),
-                Reschedule(fromWeek = 9, fromDay = 6),
-                Reschedule(fromWeek = 9, fromDay = 7),
-                Reschedule(fromWeek = 10, fromDay = 7),
-                Reschedule(fromWeek = 11, fromDay = 1),
-                Reschedule(fromWeek = 11, fromDay = 2, toWeek = 11, toDay = 6),
-                Reschedule(fromWeek = 11, fromDay = 3),
-                Reschedule(fromWeek = 11, fromDay = 4),
-                Reschedule(fromWeek = 15, fromDay = 5),
-                Reschedule(fromWeek = 16, fromDay = 6),
-                Reschedule(fromWeek = 16, fromDay = 7)
-            )
-            else -> listOf()
+            else -> emptyArray()
         }
     }
 
     fun getTotalWeeks(): Int {
-        return when (semester) {
-            "2021-2022-1" -> 15
-            else -> 16
-        }
-    }
-
-    val supportedPKUSemesters = listOf("2020-2021-2", "2021-2022-1", "2021-2022-2")
-
-    fun getPKUTotalWeeks(): Int {
-        return when (semester) {
-            "2020-2021-2" -> 15
-            else -> 16
-        }
-    }
-
-    fun getPKUWeekShift(): Int {
-        return when (semester) {
-            "2020-2021-1" -> 1
-            "2020-2021-2" -> 2
-            else -> 0
-        }
-    }
-
-    fun getPKUCourseNotesSeparator(): String {
-        return when (semester) {
-            "2020-2021-2" -> ";"
-            "2021-2022-1" -> ","
-            "2021-2022-2" -> "；"
-            else -> ","
-        }
-    }
-
-    fun getPKUHolidayWeeks(day: Int): List<Int> {
-        return when (semester) {
-            "2020-2021-2" -> when (day) {
-                5, 6 -> listOf(8)
-                else -> listOf()
-            }
-            "2021-2022-1" -> when (day) {
-                1, 3, 4 -> listOf(4)
-                2 -> listOf(2, 4)
-                5, 6, 7 -> listOf(3)
-                else -> listOf()
-            }
-            "2021-2022-2" -> when (day) {
-                // 清明和端午安排未出
-                1, 2, 3, 4, 5 -> listOf(11)
-                7 -> listOf(10)
-                else -> listOf()
-            }
-            else -> listOf()
-        }
+        return 16
     }
 
     // 课程表解析
 
-    lateinit var courseList: MutableList<Course>
-    lateinit var secondaryCoursesDetails: Map<String, CourseDetails>  // contains teacher and notes
-    lateinit var rescheduleList: List<Reschedule>
+    var secondaryCoursesDetails = mapOf<String, CourseDetails>()  // contains teacher and notes
 
     val semesterRegex = Regex("""name="p_xnxq" value="([\d\-]+?)"""")
 
     override fun generateCourseList(): List<Course> {
         semester = semesterRegex.find(source)?.groupValues?.get(1) ?: ""
-        courseList = mutableListOf()
-        rescheduleList = getRescheduleData()
 
-        parseSecondaryCourseTable()  // generates secondaryCoursesDetails and parses PKU courses
-        parseCourses()
-
-        return courseList
+        parseSecondaryCourseTable()  // generates secondaryCoursesDetails
+        return parseCourses()
     }
 
     val mainScriptRegex = Regex("""setInitValue\(\).+setInitValue""", RegexOption.DOT_MATCHES_ALL)
@@ -160,11 +76,12 @@ class THUParser(source: String) : Parser(source) {
     val blueTextRegex = Regex("""<font color='blue'>([^<>]+?)</font>""")
     val courseNumberRegex = Regex("""\d{10};(\d{8})""")  // teacher ID; course number
 
-    fun parseCourses() {
+    fun parseCourses(): List<Course> {
+        val courseList = mutableListOf<Course>()
         val totalWeeks = getTotalWeeks()
         val script = mainScriptRegex.find(source)!!.value
         var courseInfo = CourseDetails()
-        script.lines().forEach { line ->
+        for (line in script.lines()) {
             if ("strHTML += \"" in line) {
                 if ("<a " in line) {
                     courseInfo.number = courseNumberRegex.find(line)?.groupValues?.get(1) ?: ""
@@ -197,14 +114,15 @@ class THUParser(source: String) : Parser(source) {
                     }
                 }
                 courseInfo.location += topic
-                courseInfo.teacher = secondaryCoursesDetails[courseInfo.name]?.teacher ?: ""
-                courseInfo.notes = secondaryCoursesDetails[courseInfo.name]?.notes ?: ""
+                secondaryCoursesDetails[courseInfo.name]?.let {
+                    courseInfo.teacher = it.teacher
+                    courseInfo.notes = it.notes
+                }
             } else if ("getElementById" in line) {
                 // finalize
                 val (_, node, day) = cellPositionRegex.find(line)!!.groupValues
                 if (courseInfo.params.isNotEmpty()) {
-                    courseInfo.params.reverse()
-                    courseInfo.params.forEach {
+                    for (it in courseInfo.params.asReversed()) {
                         when {
                             // 倒数第一个以周结尾的是周数
                             it.endsWith("周") && courseInfo.weeks.isBlank() -> courseInfo.weeks = it
@@ -220,8 +138,8 @@ class THUParser(source: String) : Parser(source) {
                     day = day.toInt(),
                     room = courseInfo.location,
                     teacher = courseInfo.teacher,
-                    startNode = startNodeMap.getOrDefault(node.toInt(), 0),
-                    endNode = endNodeMap.getOrDefault(node.toInt(), 0),
+                    startNode = startNodeMap[node.toInt()],
+                    endNode = endNodeMap[node.toInt()],
                     startWeek = 0,
                     endWeek = 0,
                     type = -1,
@@ -240,7 +158,7 @@ class THUParser(source: String) : Parser(source) {
                     }
                 )
                 val weekIntList = parseWeeks(courseInfo.weeks.trim(), totalWeeks)
-                rescheduleList.forEach {
+                for (it in getRescheduleData()) {
                     if (course.day == it.toDay && it.toWeek in weekIntList) {
                         weekIntList.remove(it.toWeek)
                     }
@@ -264,18 +182,17 @@ class THUParser(source: String) : Parser(source) {
                     }
                 }
                 weekIntList.sort()
-                Common.weekIntList2WeekBeanList(weekIntList).forEach { week ->
-                    courseList.add(
-                        course.copy(
-                            startWeek = week.start,
-                            endWeek = week.end,
-                            type = week.type
-                        )
+                Common.weekIntList2WeekBeanList(weekIntList).mapTo(courseList) { week ->
+                    course.copy(
+                        startWeek = week.start,
+                        endWeek = week.end,
+                        type = week.type
                     )
                 }
                 courseInfo = CourseDetails()  // reset
             }
         }
+        return courseList
     }
 
     val secondaryCourseTableHeaderRegex = Regex("""var gridColumns = \[(.+)];""", RegexOption.DOT_MATCHES_ALL)
@@ -284,93 +201,30 @@ class THUParser(source: String) : Parser(source) {
 
     fun parseSecondaryCourseTable() {
         val result = mutableMapOf<String, CourseDetails>()
-        val header = secondaryCourseTableHeaderRegex.find(source)?.groupValues?.get(1)
-        val data = secondaryCourseTableDataRegex.find(source)?.groupValues?.get(1)
-        if (header != null && data != null) {
+        val header = secondaryCourseTableHeaderRegex.find(source)?.run { groupValues[1] } ?: return
+        val data = secondaryCourseTableDataRegex.find(source)?.run { groupValues[1] } ?: return
+        run {
             var nameIndex = 0
-            var weeksIndex = 0
-            var locationIndex = 0
             var teacherIndex = 0
             var notesIndex = 0
             header.split(",").forEachIndexed { i, s ->
                 when {
                     "课程名" in s -> nameIndex = i
-                    "上课周次" in s -> weeksIndex = i
-                    "上课地点" in s -> locationIndex = i
                     "任课教师" in s -> teacherIndex = i
                     "选课文字说明" in s -> notesIndex = i
                 }
             }
-            bracketsRegex.findAll(data).forEach { array ->
-                val items = array.groupValues[1].split(",")
+            for (arrayMatch in bracketsRegex.findAll(data)) {
+                val array = arrayMatch.groupValues[1]
+                if ("北大" in array || "北外" in array) continue
+                val items = array.split(",")
                 val name = items[nameIndex].trim().removeSurrounding("\"")
                 val teacher = items[teacherIndex].trim().removeSurrounding("\"")
                 val notes = items[notesIndex].trim().removeSurrounding("\"")
-                if ("北大" !in array.groupValues[1]) {
-                    result[name] = CourseDetails(teacher = teacher, notes = notes)
-                } else if (semester in supportedPKUSemesters) {
-                    parsePKUCourse(
-                        CourseDetails(
-                            name = name,
-                            weeks = items[weeksIndex].trim().removeSurrounding("\""),
-                            location = items[locationIndex].trim().removeSurrounding("\""),
-                            teacher = teacher,
-                            notes = notes
-                        )
-                    )
-                }
+                result[name] = CourseDetails(teacher = teacher, notes = notes)
             }
         }
         secondaryCoursesDetails = result
-    }
-
-    fun parsePKUCourse(details: CourseDetails) {
-        val teacher = Regex("""教师:(.+?);""").find(details.notes)?.groupValues?.get(1) ?: details.teacher
-        val weekShift = getPKUWeekShift()
-        val fallbackWeeks = parseWeeks(
-            courseWeeks = details.weeks,
-            totalWeeks = getPKUTotalWeeks()
-        )
-        Regex("""时间:(.+)""").find(details.notes)!!.groupValues[1]
-            .split(getPKUCourseNotesSeparator()).forEach { time ->
-                if (":" !in time) {  // notes
-                    return@forEach
-                }
-                val lastSegment = time.trim().substringAfterLast(' ')
-                val weeks = when {
-                    "(" in time -> parseWeeks(
-                        courseWeeks = time.substringAfter("(").substringBefore(")"),
-                        totalWeeks = fallbackWeeks.last()
-                    )
-                    lastSegment.endsWith("周") -> parseWeeks(
-                        courseWeeks = lastSegment,
-                        totalWeeks = fallbackWeeks.last()
-                    )
-                    else -> fallbackWeeks
-                }
-                val (_, dayStr, startTime, endTime) = Regex("""周(\S)\s*(\d{1,2}:\d{2})-(\d{1,2}:\d{2})""")
-                    .find(time)!!.groupValues
-                val day = Common.getNodeInt(dayStr)
-                getPKUHolidayWeeks(day).forEach { week -> weeks.remove(week); }
-                Common.weekIntList2WeekBeanList(weeks.map { it + weekShift }.toMutableList()).forEach { week ->
-                    courseList.add(
-                        Course(
-                            name = details.name,
-                            day = day,
-                            room = details.location,
-                            teacher = teacher,
-                            startNode = 0,
-                            endNode = 0,
-                            startWeek = week.start,
-                            endWeek = week.end,
-                            type = week.type,
-                            note = details.notes,
-                            startTime = startTime.timeZeroPad(),
-                            endTime = endTime.timeZeroPad()
-                        )
-                    )
-                }
-            }
     }
 
     fun parseWeeks(courseWeeks: String, totalWeeks: Int): MutableList<Int> {
@@ -393,11 +247,11 @@ class THUParser(source: String) : Parser(source) {
                     when {
                         "-" in it ->
                             (it.substringBefore("-").toInt()..it.substringAfter("-").toInt())
-                                .forEach { weekInt -> weekIntList.add(weekInt) }
+                                .let { range -> weekIntList.addAll(range) }
                         else -> weekIntList.add(it.toInt())
                     }
                 }
-                weekIntList
+                return weekIntList
             }
         }.toMutableList()
     }

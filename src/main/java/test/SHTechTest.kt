@@ -6,9 +6,7 @@ import java.io.File
 
 fun main() {
 
-    val file = File("./inputSlst.html")
-    val str = file.readText()
-    //println(str)
-    val parser = SHTechParser(str)
+    val file = File("./inputsist.html")
+    val parser = SHTechParser(file.readText())
     parser.saveCourse()
 }

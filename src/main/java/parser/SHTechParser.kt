@@ -5,6 +5,11 @@ import org.jsoup.Jsoup
 import parser.Parser
 
 class SHTechParser(source: String) : Parser(source) {
+    /**@author mhk
+     * @date 20220821
+     * 上海科技大学研究生教务导入
+     * https://grad.shanghaitech.edu.cn/public/WitMis_LookCourseTable.aspx
+     */
     override fun generateCourseList(): List<Course> {
         val courseWebs = getCourseWeb(source)
         val to_return = courseWebs.flatMap { transform(it) }
@@ -12,12 +17,14 @@ class SHTechParser(source: String) : Parser(source) {
     }
 
     val strClassMate = "(.*)\\d+班"
+    val otherAdd = "班级:"
+    val otherAdd2 = ",教师:"
     fun transform(courseWeb: CourseWeb): ArrayList<Course> {
         val to_return: ArrayList<Course> = ArrayList()
         val regClassMate = Regex(strClassMate)
         val matchClassMate = regClassMate.findAll(courseWeb.classMate)
 
-        val name = matchClassMate.elementAtOrNull(0)?.groupValues?.get(1) ?: courseWeb.classMate
+        val name = matchClassMate.elementAtOrNull(0)?.groupValues?.get(1) ?: (otherAdd+courseWeb.classMate+otherAdd2+courseWeb.schedule.teacher)
         val note =""
         if (courseWeb.schedule.except.size == 0) {
             to_return.add(
@@ -196,13 +203,11 @@ class SHTechParser(source: String) : Parser(source) {
                     //&& a.schedule.except.equals(b.schedule.except)
                     && a.schedule.LessonEnd == b.schedule.LessonStart - 1
                 ) {
-
                     a.schedule.LessonEnd = b.schedule.LessonStart
                     data.remove(b)
                 } else {
                     j++
                 }
-
             }
             i++
         }
@@ -222,7 +227,6 @@ class CourseSchedule
     val except: ArrayList<Int>,//第几周不上课
     val LessonStart: Int,//第几节课开始
     var LessonEnd: Int//第几节课结束
-
 ) {
 }
 
@@ -231,7 +235,4 @@ class CourseWeb
     val classMate: String,
     val schedule: CourseSchedule
 ) {
-    override fun toString(): String {
-        return "CourseWeb(classMate='$classMate', schedule=$schedule)"
-    }
 }

@@ -2,6 +2,7 @@ package main.java.parser
 
 import bean.Course
 import org.jsoup.Jsoup
+import org.jsoup.nodes.Element
 import parser.Parser
 
 class SHTechParser(source: String) : Parser(source) {
@@ -72,30 +73,50 @@ class SHTechParser(source: String) : Parser(source) {
     }
 
     fun getCourseWeb(html: String): ArrayList<CourseWeb> {
-
         val to_return = ArrayList<CourseWeb>()
         val document = Jsoup.parse(html)
         val table = document.getElementById("div-table")
+        //println(table)
         val trs = table?.select("tr")!!
 
+        val addTd = ArrayList<ArrayList<Int>>(14)
+        for (i in 1..14) {
+            addTd.add(ArrayList<Int>())
+        }
         for ((row, tr) in trs.withIndex()) {
+            //println("$row,$tr")
             val tds = tr.select("td")
+            for (add in addTd[row]) {
+                tds.add(add, Element("td"))
+            }
             for ((col, td) in tds.withIndex()) {
                 if (row in 1..13 && col in 1..7) {
                     td.select("br").append("\n")//这里因为Jsoup版本不同,和原项目不同
                     val tdText = td.wholeText()
+                    val rowSpan = td.attr("rowspan").toIntOrNull()
+                    var step = 0
+                    //println(rowSpan)
+                    //println(tdText)
+                    if (rowSpan != null) {
+                        step = rowSpan - 1
+                        for (i in 1 until rowSpan) {
+                            addTd[row + i].add(col)
+                        }
+                    }
+
                     if (tdText != null && tdText != "") {
                         val splited = tdText.split("\n")
                         //println("$row,$col,$tdText")
-                        val cnt = splited.size /4
+                        val cnt = splited.size / 4
                         for (i in 0 until cnt) {
-                            val classMate = splited[4*i]
-                            val teacher = splited[4*i+1]
-                            val classRoom = splited[4*i+2]
-                            val weekStr = splited[4*i+3]
-                            val schedule = getWeek(weekStr, col, row, row, teacher, classRoom)
+                            val classMate = splited[4 * i]
+                            val teacher = splited[4 * i + 1]
+                            val classRoom = splited[4 * i + 2]
+                            val weekStr = splited[4 * i + 3]
+                            val schedule = getWeek(weekStr, col, row, row + step, teacher, classRoom)
                             val course = CourseWeb(classMate, schedule)
-
+                            //完成的todo:同一个格子有多门课的情况没有考虑
+                            //println(course)
                             to_return.add(course)
                         }
                     }
@@ -103,6 +124,7 @@ class SHTechParser(source: String) : Parser(source) {
                 }
             }
         }
+        //println(table)
         merge(to_return)
         return to_return
     }

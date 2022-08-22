@@ -71,6 +71,7 @@ class SHTechParser(source: String) : Parser(source) {
         }
         return to_return
     }
+    val isWakeUp = true
 
     fun getCourseWeb(html: String): ArrayList<CourseWeb> {
         val to_return = ArrayList<CourseWeb>()
@@ -91,7 +92,8 @@ class SHTechParser(source: String) : Parser(source) {
             }
             for ((col, td) in tds.withIndex()) {
                 if (row in 1..13 && col in 1..7) {
-                    td.select("br").append("\n")//这里因为Jsoup版本不同,和原项目不同
+                    if(isWakeUp ){
+                        td.select("br").append("\n")}//这里因为Jsoup版本不同,和原项目不同
                     val tdText = td.wholeText()
                     val rowSpan = td.attr("rowspan").toIntOrNull()
                     var step = 0
@@ -114,7 +116,10 @@ class SHTechParser(source: String) : Parser(source) {
                             val classRoom = splited[4 * i + 2]
                             val weekStr = splited[4 * i + 3]
                             val schedule = getWeek(weekStr, col, row, row + step, teacher, classRoom)
-                            val course = CourseWeb(classMate, schedule)
+                            val schedule2 =  if (schedule.weekStart < schedule.weekEnd) schedule else
+                                CourseSchedule(schedule.teacher,schedule.classRoom,1,17,schedule.weekday,ArrayList<Int>(),schedule.LessonStart,schedule.LessonEnd)
+                            //如果课表上的时间出错,就设置为1-17周
+                            val course = CourseWeb(classMate, schedule2)
                             //完成的todo:同一个格子有多门课的情况没有考虑
                             //println(course)
                             to_return.add(course)

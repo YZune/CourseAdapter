@@ -17,15 +17,11 @@ class SHTechParser(source: String) : Parser(source) {
         return to_return
     }
 
-    val strClassMate = "(.*)\\d+班"
-    val otherAdd = "班级:"
-    val otherAdd2 = ",教师:"
     fun transform(courseWeb: CourseWeb): ArrayList<Course> {
         val to_return: ArrayList<Course> = ArrayList()
-        val regClassMate = Regex(strClassMate)
-        val matchClassMate = regClassMate.findAll(courseWeb.classMate)
 
-        val name = matchClassMate.elementAtOrNull(0)?.groupValues?.get(1) ?: (otherAdd+courseWeb.classMate+otherAdd2+courseWeb.schedule.teacher)
+
+        val name = courseWeb.getName(isEndUser)
         val note =""
         if (courseWeb.schedule.except.size == 0) {
             to_return.add(
@@ -72,6 +68,7 @@ class SHTechParser(source: String) : Parser(source) {
         return to_return
     }
     val isWakeUp = true
+    val isEndUser= true
 
     fun getCourseWeb(html: String): ArrayList<CourseWeb> {
         val to_return = ArrayList<CourseWeb>()
@@ -132,6 +129,9 @@ class SHTechParser(source: String) : Parser(source) {
         }
         //println(table)
         merge(to_return)
+        //println(to_return)
+        mergeTeacher(to_return)
+        //println(to_return)
         return to_return
     }
 
@@ -240,13 +240,39 @@ class SHTechParser(source: String) : Parser(source) {
             i++
         }
     }
+    fun mergeTeacher(data: ArrayList<CourseWeb>) {
+        var i = 0
+        while (i < data.size) {
+            val a = data[i]
+            var j = i + 1
+            while (j < data.size) {
+                val b = data[j]
+                if (a.classMate == b.classMate
+                    && a.schedule.weekday == b.schedule.weekday
+                    //&& a.schedule.weekStart == b.schedule.weekStart
+                    //&& a.schedule.weekEnd == b.schedule.weekEnd
+                    && a.schedule.classRoom == b.schedule.classRoom
+                    && a.schedule.LessonEnd == b.schedule.LessonEnd
+                    && a.schedule.LessonStart == b.schedule.LessonStart
+                ) {
+
+                    a.schedule.teacher += "," + b.schedule.teacher
+                    a.isNeedCheck =true
+                    data.remove(b)
+                } else {
+                    j++
+                }
+            }
+            i++
+        }
+    }
 }
 
 
 
 class CourseSchedule
     (
-    val teacher: String,//授课教师
+    var teacher: String,//授课教师
     val classRoom: String,//教室
     val weekStart: Int,//第几周开始
     val weekEnd: Int, //第几周结束
@@ -255,12 +281,45 @@ class CourseSchedule
     val except: ArrayList<Int>,//第几周不上课
     val LessonStart: Int,//第几节课开始
     var LessonEnd: Int//第几节课结束
+
 ) {
+
+
+    override fun toString(): String {
+        val exceptStr = if (except.size > 0) "除${except}周," else ""
+        return "教师:$teacher 地点:$classRoom,$weekStart-${weekEnd}周$weekday,$exceptStr$LessonStart-${LessonEnd}节"
+    }
+
 }
+
 
 class CourseWeb
     (
     val classMate: String,
     val schedule: CourseSchedule
 ) {
+    var isNeedCheck :Boolean = false
+
+    val strClassMate = "(.*)\\d+班"
+    val otherAdd = "班级:"
+    val otherAdd2 = ",教师:"
+    val mutltTeacherAdd = "请务必手动检查周数:"
+
+    fun getNameOrNull ():String?
+    {
+        val regClassMate = Regex(strClassMate)
+        val matchClassMate = regClassMate.findAll(classMate)
+        val name =  matchClassMate.elementAtOrNull(0)?.groupValues?.get(1)
+        return name
+    }
+
+    fun getName(isEndUser :Boolean) :String
+    {
+        val partName =  getNameOrNull() ?: (otherAdd + classMate + otherAdd2 + schedule.teacher)
+        val checkAdding =  if (isEndUser && isNeedCheck) mutltTeacherAdd else ""
+        return checkAdding + partName
+    }
+    override fun toString(): String {
+        return "CourseWeb(classMate='$classMate', schedule=$schedule)"
+    }
 }

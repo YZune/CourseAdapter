@@ -86,6 +86,7 @@ class SHTechParser(source: String) : Parser(source) {
         }
         for ((row, tr) in trs.withIndex()) {
             //println("$row,$tr")
+            addTd[row].sort()
             val tds = tr.select("td")
             for (add in addTd[row]) {
                 tds.add(add, Element("td"))

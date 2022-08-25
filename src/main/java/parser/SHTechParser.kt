@@ -6,6 +6,7 @@ import main.java.bean.TimeTable
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Element
 import parser.Parser
+import java.io.File
 
 class SHTechParser(source: String) : Parser(source) {
     /**@author mhk
@@ -29,53 +30,32 @@ class SHTechParser(source: String) : Parser(source) {
 <>建议自行在我的培养-排课结果查询 利用教室信息查询并手动修正.<>
 如果你遇到其他问题,可以带上截图及课表页面HTML发邮件到 y@wanghy.gq .
      */
-    override fun getNodes(): Int? =13
+    override fun getNodes(): Int = 13
 
-    override fun getTableName(): String? ="上科大导入"
+    override fun getTableName(): String = "上科大导入"
 
-
-
-    override fun generateTimeTable(): TimeTable? {
-        val timeList : ArrayList<TimeDetail> = arrayListOf(
-            TimeDetail(1,"08:15","09:00"),
-            TimeDetail(2,"09:10","09:55"),
-            TimeDetail(3,"10:15","11:00"),
-            TimeDetail(4,"11:10","11:55"),
-            TimeDetail(5,"13:00","13:45"),
-            TimeDetail(6,"13:55","14:40"),
-            TimeDetail(7,"15:00","15:45"),
-            TimeDetail(8,"15:55","16:40"),
-            TimeDetail(9,"16:50","17:35"),
-            TimeDetail(10,"18:00","18:45"),
-            TimeDetail(11,"18:55","19:40"),
-            TimeDetail(12,"19:50","20:35"),
-            TimeDetail(13,"20:45","21:30")
-            //,
-//            TimeDetail(14,"21:45","22:30"),
-//            TimeDetail(15,"21:55","22:40"),
-//            TimeDetail(16,"22:05","22:50"),
-//            TimeDetail(17,"22:15","23:00"),
-//            TimeDetail(18,"22:25","23:10"),
-//            TimeDetail(19,"22:35","23:20"),
-//            TimeDetail(20,"22:45","23:30"),
-//            TimeDetail(21,"22:55","23:40"),
-//            TimeDetail(22,"23:05","23:50"),
-//            TimeDetail(23,"23:15","00:00"),
-//            TimeDetail(24,"23:25","00:00"),
-//            TimeDetail(25,"23:35","00:00"),
-//            TimeDetail(26,"23:45","00:00"),
-//            TimeDetail(27,"23:51","00:00"),
-//            TimeDetail(28,"23:56","00:00"),
-//            TimeDetail(29,"00:00","00:45"),
-//            TimeDetail(30,"00:00","00:45")
+    override fun generateTimeTable(): TimeTable {
+        val timeList: ArrayList<TimeDetail> = arrayListOf(
+            TimeDetail(1, "08:15", "09:00"),
+            TimeDetail(2, "09:10", "09:55"),
+            TimeDetail(3, "10:15", "11:00"),
+            TimeDetail(4, "11:10", "11:55"),
+            TimeDetail(5, "13:00", "13:45"),
+            TimeDetail(6, "13:55", "14:40"),
+            TimeDetail(7, "15:00", "15:45"),
+            TimeDetail(8, "15:55", "16:40"),
+            TimeDetail(9, "16:50", "17:35"),
+            TimeDetail(10, "18:00", "18:45"),
+            TimeDetail(11, "18:55", "19:40"),
+            TimeDetail(12, "19:50", "20:35"),
+            TimeDetail(13, "20:45", "21:30")
         )
-       return TimeTable("上科大作息",timeList)
+        return TimeTable("上科大作息", timeList)
     }
 
     override fun generateCourseList(): List<Course> {
         val courseWebs = getCourseWeb(source)
         val to_return = courseWebs.flatMap { transform(it) }
-        //println(to_return)
         return to_return
     }
 
@@ -85,7 +65,7 @@ class SHTechParser(source: String) : Parser(source) {
 
 
         val name = courseWeb.getName(isEndUser)
-        val note =""
+        val note = ""
         if (courseWeb.schedule.except.size == 0) {
             to_return.add(
                 Course(
@@ -104,14 +84,12 @@ class SHTechParser(source: String) : Parser(source) {
         } else {
             val weekList: ArrayList<Int> = ArrayList()
             for (i in courseWeb.schedule.weekStart..courseWeb.schedule.weekEnd) {
-                if (i !in courseWeb.schedule.except)
-                {
+                if (i !in courseWeb.schedule.except) {
                     weekList.add(i)
                 }
             }
             val weeks = Common.weekIntList2WeekBeanList(weekList)
-            for (week in weeks)
-            {
+            for (week in weeks) {
                 to_return.add(
                     Course(
                         name,
@@ -130,8 +108,9 @@ class SHTechParser(source: String) : Parser(source) {
         }
         return to_return
     }
+
     val isWakeUp = true
-    val isEndUser= true
+    val isEndUser = true
 
     fun getCourseWeb(html: String): ArrayList<CourseWeb> {
         val to_return = ArrayList<CourseWeb>()
@@ -153,9 +132,7 @@ class SHTechParser(source: String) : Parser(source) {
             }
             for ((col, td) in tds.withIndex()) {
                 if (row in 1..13 && col in 1..7) {
-                    if(isWakeUp ){
-                        td.select("br").append("\n")}//这里因为Jsoup版本不同,和原项目不同
-                    val tdText = td.wholeText()
+                    val tdText = td.html()?.trim()
                     val rowSpan = td.attr("rowspan").toIntOrNull()
                     var step = 0
                     //println(rowSpan)
@@ -168,7 +145,7 @@ class SHTechParser(source: String) : Parser(source) {
                     }
 
                     if (tdText != null && tdText != "") {
-                        val splited = tdText.split("\n")
+                        val splited = tdText.split("<br>")
                         //println("$row,$col,$tdText")
                         val cnt = splited.size / 4
                         for (i in 0 until cnt) {
@@ -177,8 +154,17 @@ class SHTechParser(source: String) : Parser(source) {
                             val classRoom = splited[4 * i + 2]
                             val weekStr = splited[4 * i + 3]
                             val schedule = getWeek(weekStr, col, row, row + step, teacher, classRoom)
-                            val schedule2 =  if (schedule.weekStart < schedule.weekEnd) schedule else
-                                CourseSchedule(schedule.teacher,schedule.classRoom,1,17,schedule.weekday,ArrayList<Int>(),schedule.LessonStart,schedule.LessonEnd)
+                            val schedule2 = if (schedule.weekStart < schedule.weekEnd) schedule else
+                                CourseSchedule(
+                                    schedule.teacher,
+                                    schedule.classRoom,
+                                    1,
+                                    17,
+                                    schedule.weekday,
+                                    ArrayList<Int>(),
+                                    schedule.LessonStart,
+                                    schedule.LessonEnd
+                                )
                             //如果课表上的时间出错,就设置为1-17周
                             val course = CourseWeb(classMate, schedule2)
                             //完成的todo:同一个格子有多门课的情况没有考虑
@@ -265,8 +251,8 @@ class SHTechParser(source: String) : Parser(source) {
             for (aWeek in matchNum.iterator()) {
                 weeks.add(aWeek.value.toInt())
             }
-            val weekStart = weeks.min()!!
-            val weekEnd = weeks.max()!!
+            val weekStart = weeks.minOrNull()!!
+            val weekEnd = weeks.maxOrNull()!!
             for (i in weekStart..weekEnd) {
                 if (i !in weeks) {
                     except.add(i)
@@ -303,6 +289,7 @@ class SHTechParser(source: String) : Parser(source) {
             i++
         }
     }
+
     fun mergeTeacher(data: ArrayList<CourseWeb>) {
         var i = 0
         while (i < data.size) {
@@ -320,7 +307,7 @@ class SHTechParser(source: String) : Parser(source) {
                 ) {
 
                     a.schedule.teacher += "," + b.schedule.teacher
-                    a.isNeedCheck =true
+                    a.isNeedCheck = true
                     data.remove(b)
                 } else {
                     j++
@@ -329,60 +316,59 @@ class SHTechParser(source: String) : Parser(source) {
             i++
         }
     }
-}
 
 
+    class CourseSchedule
+        (
+        var teacher: String,//授课教师
+        val classRoom: String,//教室
+        val weekStart: Int,//第几周开始
+        val weekEnd: Int, //第几周结束
+        val weekday: Int, //周几
+        //val weekType: Int,//单双周 1单周 2双周 3正常
+        val except: ArrayList<Int>,//第几周不上课
+        val LessonStart: Int,//第几节课开始
+        var LessonEnd: Int//第几节课结束
 
-class CourseSchedule
-    (
-    var teacher: String,//授课教师
-    val classRoom: String,//教室
-    val weekStart: Int,//第几周开始
-    val weekEnd: Int, //第几周结束
-    val weekday: Int, //周几
-    //val weekType: Int,//单双周 1单周 2双周 3正常
-    val except: ArrayList<Int>,//第几周不上课
-    val LessonStart: Int,//第几节课开始
-    var LessonEnd: Int//第几节课结束
-
-) {
+    ) {
 
 
-    override fun toString(): String {
-        val exceptStr = if (except.size > 0) "除${except}周," else ""
-        return "教师:$teacher 地点:$classRoom,$weekStart-${weekEnd}周$weekday,$exceptStr$LessonStart-${LessonEnd}节"
+        override fun toString(): String {
+            val exceptStr = if (except.size > 0) "除${except}周," else ""
+            return "教师:$teacher 地点:$classRoom,$weekStart-${weekEnd}周$weekday,$exceptStr$LessonStart-${LessonEnd}节"
+        }
+
     }
 
-}
 
+    class CourseWeb
+        (
+        val classMate: String,
+        val schedule: CourseSchedule
+    ) {
+        var isNeedCheck: Boolean = false
 
-class CourseWeb
-    (
-    val classMate: String,
-    val schedule: CourseSchedule
-) {
-    var isNeedCheck :Boolean = false
+        val strClassMate = "(.*)\\d+班"
+        val otherAdd = "班级:"
+        val otherAdd2 = ",教师:"
+        val mutltTeacherAdd = "请务必手动检查周数:"
 
-    val strClassMate = "(.*)\\d+班"
-    val otherAdd = "班级:"
-    val otherAdd2 = ",教师:"
-    val mutltTeacherAdd = "请务必手动检查周数:"
+        fun getNameOrNull(): String? {
+            val regClassMate = Regex(strClassMate)
+            val matchClassMate = regClassMate.findAll(classMate)
+            val name = matchClassMate.elementAtOrNull(0)?.groupValues?.get(1)
+            return name
+        }
 
-    fun getNameOrNull ():String?
-    {
-        val regClassMate = Regex(strClassMate)
-        val matchClassMate = regClassMate.findAll(classMate)
-        val name =  matchClassMate.elementAtOrNull(0)?.groupValues?.get(1)
-        return name
+        fun getName(isEndUser: Boolean): String {
+            val partName = getNameOrNull() ?: (otherAdd + classMate + otherAdd2 + schedule.teacher)
+            val checkAdding = if (isEndUser && isNeedCheck) mutltTeacherAdd else ""
+            return checkAdding + partName
+        }
+
+        override fun toString(): String {
+            return "CourseWeb(classMate='$classMate', schedule=$schedule)"
+        }
     }
 
-    fun getName(isEndUser :Boolean) :String
-    {
-        val partName =  getNameOrNull() ?: (otherAdd + classMate + otherAdd2 + schedule.teacher)
-        val checkAdding =  if (isEndUser && isNeedCheck) mutltTeacherAdd else ""
-        return checkAdding + partName
-    }
-    override fun toString(): String {
-        return "CourseWeb(classMate='$classMate', schedule=$schedule)"
-    }
 }

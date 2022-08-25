@@ -1,6 +1,8 @@
 package main.java.parser
 
 import bean.Course
+import main.java.bean.TimeDetail
+import main.java.bean.TimeTable
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Element
 import parser.Parser
@@ -11,21 +13,78 @@ class SHTechParser(source: String) : Parser(source) {
      * 上海科技大学研究生教务导入
      * https://grad.shanghaitech.edu.cn/public/WitMis_LookCourseTable.aspx
      */
+    /*
+欢迎使用上海科技大学研究生课表导入工具,本科生小朋友请出门左转用树维系统导入工具导入.
+登录后,请打开 我的培养-查看课表 再导入.
+<>以下提示可以帮助你避免在不知情的情况下翘课.<>
+1.对于研究生选修本科生课的情况,教务系统中显示的课表中可能没有课程的标题信息.
+2.对于SIST/SLST/SPST以外的其他学院开设的课程,教务系统中显示的课表中可能没有课程的标题信息.
+3.对于一门课有多位教师的情况,课表不仅会为每一位教师生成一门单独的课,还有一定概率出现周数的错乱.
+对于情况1/2,课程标题暂且展示为班级+教师信息.
+对于情况3周数错乱导致“时间倒流”的情况会被自动覆盖为1~17周.
+不论这种覆盖有没有发生,均不能认为周数信息是可靠的,请务必手动检查周数.
+<>请务必通过 我的培养-排课结果查询 手动检查周数.<>
+对于情况3不同教师进行合并,教师顺序与课表中展示的一致.
+这些问题均出自教务系统的限制,对于未有明确修正说明的情况本工具均“依样”输出.
+<>建议自行在我的培养-排课结果查询 利用教室信息查询并手动修正.<>
+如果你遇到其他问题,可以带上截图及课表页面HTML发邮件到 y@wanghy.gq .
+     */
+    override fun getNodes(): Int? =13
+
+    override fun getTableName(): String? ="上科大导入"
+
+
+
+    override fun generateTimeTable(): TimeTable? {
+        val timeList : ArrayList<TimeDetail> = arrayListOf(
+            TimeDetail(1,"08:15","09:00"),
+            TimeDetail(2,"09:10","09:55"),
+            TimeDetail(3,"10:15","11:00"),
+            TimeDetail(4,"11:10","11:55"),
+            TimeDetail(5,"13:00","13:45"),
+            TimeDetail(6,"13:55","14:40"),
+            TimeDetail(7,"15:00","15:45"),
+            TimeDetail(8,"15:55","16:40"),
+            TimeDetail(9,"16:50","17:35"),
+            TimeDetail(10,"18:00","18:45"),
+            TimeDetail(11,"18:55","19:40"),
+            TimeDetail(12,"19:50","20:35"),
+            TimeDetail(13,"20:45","21:30")
+            //,
+//            TimeDetail(14,"21:45","22:30"),
+//            TimeDetail(15,"21:55","22:40"),
+//            TimeDetail(16,"22:05","22:50"),
+//            TimeDetail(17,"22:15","23:00"),
+//            TimeDetail(18,"22:25","23:10"),
+//            TimeDetail(19,"22:35","23:20"),
+//            TimeDetail(20,"22:45","23:30"),
+//            TimeDetail(21,"22:55","23:40"),
+//            TimeDetail(22,"23:05","23:50"),
+//            TimeDetail(23,"23:15","00:00"),
+//            TimeDetail(24,"23:25","00:00"),
+//            TimeDetail(25,"23:35","00:00"),
+//            TimeDetail(26,"23:45","00:00"),
+//            TimeDetail(27,"23:51","00:00"),
+//            TimeDetail(28,"23:56","00:00"),
+//            TimeDetail(29,"00:00","00:45"),
+//            TimeDetail(30,"00:00","00:45")
+        )
+       return TimeTable("上科大作息",timeList)
+    }
+
     override fun generateCourseList(): List<Course> {
         val courseWebs = getCourseWeb(source)
         val to_return = courseWebs.flatMap { transform(it) }
+        //println(to_return)
         return to_return
     }
 
-    val strClassMate = "(.*)\\d+班"
-    val otherAdd = "班级:"
-    val otherAdd2 = ",教师:"
+
     fun transform(courseWeb: CourseWeb): ArrayList<Course> {
         val to_return: ArrayList<Course> = ArrayList()
-        val regClassMate = Regex(strClassMate)
-        val matchClassMate = regClassMate.findAll(courseWeb.classMate)
 
-        val name = matchClassMate.elementAtOrNull(0)?.groupValues?.get(1) ?: (otherAdd+courseWeb.classMate+otherAdd2+courseWeb.schedule.teacher)
+
+        val name = courseWeb.getName(isEndUser)
         val note =""
         if (courseWeb.schedule.except.size == 0) {
             to_return.add(
@@ -72,6 +131,7 @@ class SHTechParser(source: String) : Parser(source) {
         return to_return
     }
     val isWakeUp = true
+    val isEndUser= true
 
     fun getCourseWeb(html: String): ArrayList<CourseWeb> {
         val to_return = ArrayList<CourseWeb>()
@@ -132,6 +192,9 @@ class SHTechParser(source: String) : Parser(source) {
         }
         //println(table)
         merge(to_return)
+        //println(to_return)
+        mergeTeacher(to_return)
+        //println(to_return)
         return to_return
     }
 
@@ -240,13 +303,39 @@ class SHTechParser(source: String) : Parser(source) {
             i++
         }
     }
+    fun mergeTeacher(data: ArrayList<CourseWeb>) {
+        var i = 0
+        while (i < data.size) {
+            val a = data[i]
+            var j = i + 1
+            while (j < data.size) {
+                val b = data[j]
+                if (a.classMate == b.classMate
+                    && a.schedule.weekday == b.schedule.weekday
+                    //&& a.schedule.weekStart == b.schedule.weekStart
+                    //&& a.schedule.weekEnd == b.schedule.weekEnd
+                    && a.schedule.classRoom == b.schedule.classRoom
+                    && a.schedule.LessonEnd == b.schedule.LessonEnd
+                    && a.schedule.LessonStart == b.schedule.LessonStart
+                ) {
+
+                    a.schedule.teacher += "," + b.schedule.teacher
+                    a.isNeedCheck =true
+                    data.remove(b)
+                } else {
+                    j++
+                }
+            }
+            i++
+        }
+    }
 }
 
 
 
 class CourseSchedule
     (
-    val teacher: String,//授课教师
+    var teacher: String,//授课教师
     val classRoom: String,//教室
     val weekStart: Int,//第几周开始
     val weekEnd: Int, //第几周结束
@@ -255,12 +344,45 @@ class CourseSchedule
     val except: ArrayList<Int>,//第几周不上课
     val LessonStart: Int,//第几节课开始
     var LessonEnd: Int//第几节课结束
+
 ) {
+
+
+    override fun toString(): String {
+        val exceptStr = if (except.size > 0) "除${except}周," else ""
+        return "教师:$teacher 地点:$classRoom,$weekStart-${weekEnd}周$weekday,$exceptStr$LessonStart-${LessonEnd}节"
+    }
+
 }
+
 
 class CourseWeb
     (
     val classMate: String,
     val schedule: CourseSchedule
 ) {
+    var isNeedCheck :Boolean = false
+
+    val strClassMate = "(.*)\\d+班"
+    val otherAdd = "班级:"
+    val otherAdd2 = ",教师:"
+    val mutltTeacherAdd = "请务必手动检查周数:"
+
+    fun getNameOrNull ():String?
+    {
+        val regClassMate = Regex(strClassMate)
+        val matchClassMate = regClassMate.findAll(classMate)
+        val name =  matchClassMate.elementAtOrNull(0)?.groupValues?.get(1)
+        return name
+    }
+
+    fun getName(isEndUser :Boolean) :String
+    {
+        val partName =  getNameOrNull() ?: (otherAdd + classMate + otherAdd2 + schedule.teacher)
+        val checkAdding =  if (isEndUser && isNeedCheck) mutltTeacherAdd else ""
+        return checkAdding + partName
+    }
+    override fun toString(): String {
+        return "CourseWeb(classMate='$classMate', schedule=$schedule)"
+    }
 }

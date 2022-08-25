@@ -1,6 +1,8 @@
 package main.java.parser
 
 import bean.Course
+import main.java.bean.TimeDetail
+import main.java.bean.TimeTable
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Element
 import parser.Parser
@@ -11,11 +13,56 @@ class SHTechParser(source: String) : Parser(source) {
      * 上海科技大学研究生教务导入
      * https://grad.shanghaitech.edu.cn/public/WitMis_LookCourseTable.aspx
      */
+    override fun getNodes(): Int? =13
+
+    override fun getTableName(): String? ="上科大导入"
+
+
+
+    override fun generateTimeTable(): TimeTable? {
+        val timeList : ArrayList<TimeDetail> = arrayListOf(
+            TimeDetail(1,"08:15","09:00"),
+            TimeDetail(2,"09:10","09:55"),
+            TimeDetail(3,"10:15","11:00"),
+            TimeDetail(4,"11:10","11:55"),
+            TimeDetail(5,"13:00","13:45"),
+            TimeDetail(6,"13:55","14:40"),
+            TimeDetail(7,"15:00","15:45"),
+            TimeDetail(8,"15:55","16:40"),
+            TimeDetail(9,"16:50","17:35"),
+            TimeDetail(10,"18:00","18:45"),
+            TimeDetail(11,"18:55","19:40"),
+            TimeDetail(12,"19:50","20:35"),
+            TimeDetail(13,"20:45","21:30")
+            //,
+//            TimeDetail(14,"21:45","22:30"),
+//            TimeDetail(15,"21:55","22:40"),
+//            TimeDetail(16,"22:05","22:50"),
+//            TimeDetail(17,"22:15","23:00"),
+//            TimeDetail(18,"22:25","23:10"),
+//            TimeDetail(19,"22:35","23:20"),
+//            TimeDetail(20,"22:45","23:30"),
+//            TimeDetail(21,"22:55","23:40"),
+//            TimeDetail(22,"23:05","23:50"),
+//            TimeDetail(23,"23:15","00:00"),
+//            TimeDetail(24,"23:25","00:00"),
+//            TimeDetail(25,"23:35","00:00"),
+//            TimeDetail(26,"23:45","00:00"),
+//            TimeDetail(27,"23:51","00:00"),
+//            TimeDetail(28,"23:56","00:00"),
+//            TimeDetail(29,"00:00","00:45"),
+//            TimeDetail(30,"00:00","00:45")
+        )
+       return TimeTable("上科大作息",timeList)
+    }
+
     override fun generateCourseList(): List<Course> {
         val courseWebs = getCourseWeb(source)
         val to_return = courseWebs.flatMap { transform(it) }
+        //println(to_return)
         return to_return
     }
+
 
     fun transform(courseWeb: CourseWeb): ArrayList<Course> {
         val to_return: ArrayList<Course> = ArrayList()

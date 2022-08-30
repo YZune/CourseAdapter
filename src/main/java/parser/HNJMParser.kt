@@ -1,6 +1,8 @@
 package parser
 
 import bean.Course
+import main.java.bean.TimeDetail
+import main.java.bean.TimeTable
 import org.jsoup.Jsoup
 
 /**
@@ -13,6 +15,26 @@ import org.jsoup.Jsoup
 
 
 class HNJMParser(source: String) : Parser(source) {
+    /*
+    //覆写时间表
+    override fun generateTimeTable(): TimeTable? {
+        val timeList : ArrayList<TimeDetail> = arrayListOf(
+            TimeDetail(1,"08:10","08:55"),
+            TimeDetail(2,"09:05","09:50"),
+            TimeDetail(3,"10:15","11:00"),
+            TimeDetail(4,"11:10","11:55"),
+            TimeDetail(5,"14:40","15:25"),
+            TimeDetail(6,"15:35","16:20"),
+            TimeDetail(7,"16:40","17:25"),
+            TimeDetail(8,"17:35","18:20"),
+            TimeDetail(9,"19:00","19:45"),
+            TimeDetail(10,"19:55","20:40")
+        )
+        return TimeTable("河南经贸作息",timeList)
+    }
+
+    override fun getTableName(): String? ="河南经贸导入"
+    */
     override fun generateCourseList(): List<Course> {
         val courseList = arrayListOf<Course>()
         val doc = Jsoup.parse(source)

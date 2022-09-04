@@ -112,7 +112,7 @@ public class RUCParser extends Parser {
                 return span.concat(odd_even);
             }
         } else
-            throw new PatternSyntaxException("week format is illegal", "第([0-9]{1,2}-[0-9]{1,2})周([单|全|双])周", -1);
+            throw new PatternSyntaxException("week format is illegal", "第([0-9]{1,2}-[0-9]{1,2})周([单全双])周", -1);
     }
 
     private static String filter(String attr) {

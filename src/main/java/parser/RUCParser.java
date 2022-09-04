@@ -37,6 +37,9 @@ import java.util.stream.Stream;
 
 public class RUCParser extends Parser {
 
+    // There will be some warnings about redundant character escape, but to fix this we will have to
+    // use some grammar which some other regular expression engines do not support. So, I did not modify
+    // these regular expressions.
     private static final Pattern course_list_re = Pattern.compile("\"course\": \\[([\\s\\S]*?)\\]");
     private static final Pattern each_course_re = Pattern.compile("\\{[\\s\\S]*?\\}");
     private static final Pattern each_attribute_re = Pattern.compile("\"(\\S+)\": {1,2}\"([\\S\\s]*?)\"");
@@ -70,7 +73,7 @@ public class RUCParser extends Parser {
 
 
 
-        return RUCParser.join(Stream.concat(Stream.of(title), rows.stream()).map((each) -> RUCParser.format_a_line(each)).collect(Collectors.toList()), "\n");
+        return RUCParser.join(Stream.concat(Stream.of(title), rows.stream()).map(RUCParser::format_a_line).collect(Collectors.toList()), "\n");
     }
 
     private static List<Map<String, String>> document_parse(String document) {
@@ -89,7 +92,6 @@ public class RUCParser extends Parser {
                 transform_q(attr_dict);
                 attr_dicts.add(attr_dict);
             }
-        } else {
         }
         return attr_dicts;
     }
@@ -129,7 +131,7 @@ public class RUCParser extends Parser {
     }
 
     private static <A, B> List<B> map_get(Map<A, B> dict, List<A> list) {
-        return list.stream().map(key -> dict.get(key)).collect(Collectors.toList());
+        return list.stream().map(dict::get).collect(Collectors.toList());
     }
 
     private static List<List<String>> give_course_attr_lists(List<Map<String, String>> attr_dicts) {
@@ -162,7 +164,7 @@ public class RUCParser extends Parser {
         Matcher hour_match = hours_list_re.matcher(this.source);
         if (hour_match.find()) {
             Matcher each_match = each_hour_re.matcher(hour_match.group(1));
-            Integer count = 1;
+            int count = 1;
             while (each_match.find()) {
                 times.add(
                         new TimeDetail(count,

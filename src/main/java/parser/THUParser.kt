@@ -43,11 +43,12 @@ class THUParser(source: String) : Parser(source) {
                 Reschedule(fromWeek = 1, fromDay = 1),
                 Reschedule(fromWeek = 3, fromDay = 6),
                 Reschedule(fromWeek = 3, fromDay = 7),
-                Reschedule(fromWeek = 4, fromDay = 1, toWeek = 4, toDay = 6),
-                Reschedule(fromWeek = 4, fromDay = 2),
-                Reschedule(fromWeek = 4, fromDay = 3),
-                Reschedule(fromWeek = 4, fromDay = 4),
-                Reschedule(fromWeek = 4, fromDay = 5),
+                Reschedule(fromWeek = 4, fromDay = 1, toWeek = 10, toDay = 6),
+                Reschedule(fromWeek = 16, fromDay = 2),
+                Reschedule(fromWeek = 16, fromDay = 3),
+                Reschedule(fromWeek = 16, fromDay = 4),
+                Reschedule(fromWeek = 16, fromDay = 5),
+                Reschedule(fromWeek = 16, fromDay = 6),
                 Reschedule(fromWeek = 16, fromDay = 7)
             )
             else -> emptyArray()

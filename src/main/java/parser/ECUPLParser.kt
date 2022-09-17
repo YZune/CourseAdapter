@@ -3,17 +3,18 @@ package main.java.parser
 import bean.Course
 import main.java.bean.TimeDetail
 import main.java.bean.TimeTable
-import org.jsoup.Jsoup
 import main.java.parser.supwisdom.SupwisdomParser
+import org.jsoup.Jsoup
+import org.jsoup.nodes.Element
 import java.util.Calendar
 import kotlin.math.min
 
 class ECUPLParser(source: String) : SupwisdomParser(source) {
-    private val cal = Calendar.getInstance()
-    private var year = cal.get(Calendar.YEAR)
     private var finalWeekFits = false
     private var firstWeek = 0
     private var maxWeek = 20
+
+    private val doc = Jsoup.parse(source)
 
     data class CourseDetails(
         val name: String,
@@ -22,19 +23,19 @@ class ECUPLParser(source: String) : SupwisdomParser(source) {
         val note: String
     )
 
-    private fun parseCourseDetailsTable(table: org.jsoup.nodes.Element): Map<String, CourseDetails> {
+    private fun parseCourseDetailsTable(table: Element): Map<String, CourseDetails> {
         var courseNumberIndex = 2
         var courseTeacherIndex = 3
         var courseNameIndex = 4
         var courseCreditIndex = 7
         var courseNoteIndex = 12
 
-        val courseDetailsMap = mutableMapOf<String, CourseDetails>()
+        val courseDetailsMap = HashMap<String, CourseDetails>()
 
-        table.select("tr").forEachIndexed { i, tr ->
+        for ((i, tr) in table.select("tr").withIndex()) {
             if (i == 0) {
-                tr.select("td").forEachIndexed { j, td ->
-                    when (td.text().trim()) {
+                for ((j, td) in tr.select("td").withIndex()) {
+                    when (td.text()) {
                         "课程序号" -> courseNumberIndex = j
                         "教师" -> courseTeacherIndex = j
                         "课程名称" -> courseNameIndex = j
@@ -44,11 +45,11 @@ class ECUPLParser(source: String) : SupwisdomParser(source) {
                 }
             } else {
                 val tds = tr.select("td")
-                courseDetailsMap[tds[courseNumberIndex].text().trim()] = CourseDetails(
-                    name = tds[courseNameIndex].text().trim(),
-                    teacher = tds[courseTeacherIndex].text().trim(),
+                courseDetailsMap[tds[courseNumberIndex].text()] = CourseDetails(
+                    name = tds[courseNameIndex].text(),
+                    teacher = tds[courseTeacherIndex].text(),
                     credit = tds[courseCreditIndex].text().toFloat(),
-                    note = tds[courseNoteIndex].text().trim()
+                    note = tds[courseNoteIndex].text()
                 )
             }
         }
@@ -57,19 +58,19 @@ class ECUPLParser(source: String) : SupwisdomParser(source) {
     }
 
     override fun generateTimeTable(): TimeTable {
-        val timeList = mutableListOf<TimeDetail>()
-        val doc = Jsoup.parse(source)
-        doc.select(".listTable")[0].select("tr")[0].select("td").forEachIndexed { i, td ->
-            if (i > 0) {
-                timeList.add(
-                    TimeDetail(
-                        node = i,
-                        startTime = td.text().substringBefore("-"),
-                        endTime = td.text().substringAfter("-")
-                    )
+        val timeList = doc
+            .selectFirst(".listTable")
+            .selectFirst("tr")
+            .select("td")
+            .drop(1)
+            .mapIndexed { i, td ->
+                val text = td.text()
+                TimeDetail(
+                    node = i + 1,
+                    startTime = text.substringBefore('-'),
+                    endTime = text.substringAfter('-')
                 )
             }
-        }
         return TimeTable(name = "华东政法大学", timeList = timeList)
     }
 
@@ -105,46 +106,31 @@ class ECUPLParser(source: String) : SupwisdomParser(source) {
     }
 
     override fun generateCourseList(): List<Course> {
-        val doc = Jsoup.parse(source)
-
-        /*
-        var script = ""
-        doc.select("script:not([src])").forEach {
-            if (it.html().indexOf("var table0 = new CourseTable") >= 0) {
-                script = it.html()
-                return@forEach
-            }
-        }
-        */
+        val cal = Calendar.getInstance()
 
         val yearMatchResult = Regex("""new CourseTable\((\d{4}),\d+\)""").find(source)
-        if (yearMatchResult != null) {
-            val (yearStr) = yearMatchResult.destructured
-            year = yearStr.toInt()
-        }
+        val year = yearMatchResult?.run { groupValues[1].toInt() } ?: cal.get(Calendar.YEAR)
         cal.set(year, 11, 31)
         finalWeekFits = cal.get(Calendar.DAY_OF_WEEK) == Calendar.SATURDAY
 
         val weekMatchResult = Regex("""table0\.marshalTable\((.+?),(.+?),(.+?)\);""").find(source)
-        if (weekMatchResult != null) {
+            ?: throw Exception("未找到本学期的起始周！")
+        run {
             val (firstWeekStr, _, maxWeekStr) = weekMatchResult.destructured
             firstWeek = firstWeekStr.toInt()
             maxWeek = maxWeekStr.toInt()
-        } else {
-            throw Exception("未找到本学期的起始周！")
         }
 
         val superCourseList = super.generateCourseList()
-        val courseList = mutableListOf<Course>()
         val courseDetailsMap = parseCourseDetailsTable(doc.select(".listTable")[1])
 
-        superCourseList.forEach {
+        return superCourseList.map {
             val dataCourseName = it.name.substringBeforeLast('(')
             val courseNumber = it.name.substringAfterLast('(').substringBefore(')')
             val courseDetails = courseDetailsMap[courseNumber]
             if (courseDetails == null) {
                 println("未找到课程 $courseNumber 的详细信息")
-                courseList.add(it)
+                it
             } else {
                 if (courseDetails.name != dataCourseName) {
                     println("课程 $courseNumber 名称不一致：表格中为“$dataCourseName”，数据中为“${courseDetails.name}”")
@@ -152,16 +138,13 @@ class ECUPLParser(source: String) : SupwisdomParser(source) {
                 if (it.teacher != "(无教师数据)" && courseDetails.teacher.indexOf(it.teacher) < 0) {
                     println("课程 $courseNumber 教师信息不一致：表格中为“${courseDetails.teacher}”，数据中为“${it.teacher}”")
                 }
-                val c = it.copy(
+                it.copy(
                     name = courseDetails.name, // assert: courseDetails.name == dataCourseName
                     teacher = courseDetails.teacher,
                     credit = courseDetails.credit,
                     note = courseDetails.note
                 )
-                courseList.add(c)
             }
         }
-
-        return courseList
     }
 }

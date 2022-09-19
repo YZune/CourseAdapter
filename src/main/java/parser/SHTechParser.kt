@@ -251,8 +251,8 @@ class SHTechParser(source: String) : Parser(source) {
             for (aWeek in matchNum.iterator()) {
                 weeks.add(aWeek.value.toInt())
             }
-            val weekStart = 0
-            val weekEnd = 0
+            val weekStart = weeks.minOrNull()!!
+            val weekEnd = weeks.maxOrNull()!!
             for (i in weekStart..weekEnd) {
                 if (i !in weeks) {
                     except.add(i)

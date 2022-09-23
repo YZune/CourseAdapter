@@ -2,8 +2,11 @@ package parser
 
 import Common
 import bean.Course
+import com.google.gson.Gson
 import main.java.bean.TimeDetail
 import main.java.bean.TimeTable
+import org.jsoup.HttpStatusException
+import org.jsoup.Jsoup
 
 class THUParser(source: String) : Parser(source) {
 
@@ -35,29 +38,11 @@ class THUParser(source: String) : Parser(source) {
 
     // 学期数据
 
-    var semester = ""
+    fun semesterDataUrl(semester: String) = "https://schedule.sdevs.top/$semester.json"
 
-    fun getRescheduleData(): Array<Reschedule> {
-        return when (semester) {
-            "2022-2023-1" -> arrayOf(
-                Reschedule(fromWeek = 1, fromDay = 1),
-                Reschedule(fromWeek = 3, fromDay = 6),
-                Reschedule(fromWeek = 3, fromDay = 7),
-                Reschedule(fromWeek = 4, fromDay = 1, toWeek = 10, toDay = 6),
-                Reschedule(fromWeek = 16, fromDay = 2),
-                Reschedule(fromWeek = 16, fromDay = 3),
-                Reschedule(fromWeek = 16, fromDay = 4),
-                Reschedule(fromWeek = 16, fromDay = 5),
-                Reschedule(fromWeek = 16, fromDay = 6),
-                Reschedule(fromWeek = 16, fromDay = 7)
-            )
-            else -> emptyArray()
-        }
-    }
+    var reschedule = emptyArray<Reschedule>()
 
-    fun getTotalWeeks(): Int {
-        return 16
-    }
+    var weekCount = 16
 
     // 课程表解析
 
@@ -66,7 +51,16 @@ class THUParser(source: String) : Parser(source) {
     val semesterRegex = Regex("""name="p_xnxq" value="([\d\-]+?)"""")
 
     override fun generateCourseList(): List<Course> {
-        semester = semesterRegex.find(source)?.groupValues?.get(1) ?: ""
+        semesterRegex.find(source)?.run {
+            val json = try {
+                Jsoup.connect(semesterDataUrl(groupValues[1])).ignoreContentType(true).execute().body()
+            } catch (e: HttpStatusException) {
+                return@run
+            }
+            val data = Gson().fromJson(json, SemesterData::class.java) ?: return@run
+            data.weekCount?.let { weekCount = it }
+            data.parsedReschedule?.let { reschedule = it }
+        }
 
         parseSecondaryCourseTable()  // generates secondaryCoursesDetails
         return parseCourses()
@@ -79,7 +73,7 @@ class THUParser(source: String) : Parser(source) {
 
     fun parseCourses(): List<Course> {
         val courseList = mutableListOf<Course>()
-        val totalWeeks = getTotalWeeks()
+        val totalWeeks = weekCount
         val script = mainScriptRegex.find(source)!!.value
         var courseInfo = CourseDetails()
         for (line in script.lines()) {
@@ -159,7 +153,7 @@ class THUParser(source: String) : Parser(source) {
                     }
                 )
                 val weekIntList = parseWeeks(courseInfo.weeks.trim(), totalWeeks)
-                for (it in getRescheduleData()) {
+                for (it in reschedule) {
                     if (course.day == it.toDay && it.toWeek in weekIntList) {
                         weekIntList.remove(it.toWeek)
                     }
@@ -243,28 +237,24 @@ class THUParser(source: String) : Parser(source) {
                     .removePrefix("第")
                     .removeSuffix("周")
                     .split(",")
-                val weekIntList = mutableListOf<Int>()
-                courseWeeksRanges.forEach {
+                return courseWeeksRanges.flatMapTo(mutableListOf()) {
                     when {
-                        "-" in it ->
-                            (it.substringBefore("-").toInt()..it.substringAfter("-").toInt())
-                                .let { range -> weekIntList.addAll(range) }
-                        else -> weekIntList.add(it.toInt())
+                        '-' in it -> it.substringBefore('-').toInt()..it.substringAfter('-').toInt()
+                        else -> listOf(it.toInt())
                     }
                 }
-                return weekIntList
             }
         }.toMutableList()
     }
 
-    data class Reschedule(
+    class Reschedule(
         val fromWeek: Int,
         val fromDay: Int,
         val toWeek: Int = 0,
         val toDay: Int = 0
     )
 
-    data class CourseDetails(
+    class CourseDetails(
         var number: String = "",
         var name: String = "",
         var teacher: String = "",
@@ -274,6 +264,19 @@ class THUParser(source: String) : Parser(source) {
         var time: String = "",
         val params: MutableList<String> = mutableListOf()
     )
+
+    class SemesterData(
+        val weekCount: Int?,
+        private val reschedule: Array<Array<Int>>?,
+    ) {
+        val parsedReschedule: Array<Reschedule>?
+            get() = reschedule?.run { Array(size) { i -> this[i].toReschedule() } }
+
+        private fun Array<Int>.toReschedule() = when (size) {
+            2 -> Reschedule(this[0], this[1])
+            else -> Reschedule(this[0], this[1], this[2], this[3])
+        }
+    }
 
     fun String.timeZeroPad(): String {
         return if (this.length == 4 && this[0].isDigit() && this[1] == ':' && this[2].isDigit() && this[3].isDigit()) {

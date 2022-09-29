@@ -93,11 +93,8 @@ class THUParser(source: String) : Parser(source) {
                         0 -> courseInfo.name = result.groupValues[1].trim()
                         1 -> {
                             var details = result.groupValues[1].trim()
-                            if (details.startsWith("(") && details.count { it == '(' } >= 2) {
-                                topic = details.substringBefore(")") + ")"
-                                details = details.substringAfter(")")
-                            }
-                            details = details.substringAfter("(").substringBefore(")").trim()
+                            topic = details.substringBeforeLast('(')
+                            details = details.substringAfterLast('(').substringBefore(')').trim()
                             details.split("；").forEach {
                                 when {
                                     "周" in it -> courseInfo.weeks = it
@@ -108,7 +105,7 @@ class THUParser(source: String) : Parser(source) {
                         }
                     }
                 }
-                courseInfo.location += topic
+                if (topic.isNotBlank()) courseInfo.location = "${courseInfo.location}($topic)"
                 secondaryCoursesDetails[courseInfo.name]?.let {
                     courseInfo.teacher = it.teacher
                     courseInfo.notes = it.notes
@@ -145,11 +142,11 @@ class THUParser(source: String) : Parser(source) {
                     note = courseInfo.notes,
                     startTime = when (courseInfo.time) {
                         "" -> ""
-                        else -> courseInfo.time.substringBefore("-").timeZeroPad()
+                        else -> courseInfo.time.substringBefore("-").formatTime()
                     },
                     endTime = when (courseInfo.time) {
                         "" -> ""
-                        else -> courseInfo.time.substringAfter("-").timeZeroPad()
+                        else -> courseInfo.time.substringAfter("-").formatTime()
                     }
                 )
                 val weekIntList = parseWeeks(courseInfo.weeks.trim(), totalWeeks)
@@ -278,11 +275,12 @@ class THUParser(source: String) : Parser(source) {
         }
     }
 
-    fun String.timeZeroPad(): String {
-        return if (this.length == 4 && this[0].isDigit() && this[1] == ':' && this[2].isDigit() && this[3].isDigit()) {
-            "0$this"
+    fun String.formatTime(): String {
+        val time = replace('：', ':').trim()
+        return if (time.length == 4 && time[0].isDigit() && time[1] == ':' && time[2].isDigit() && time[3].isDigit()) {
+            "0$time"
         } else {
-            this
+            time
         }
     }
 }

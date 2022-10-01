@@ -69,7 +69,7 @@ class SUESParser(source: String) : Parser(source) {
                             startWeek = week.start,
                             endWeek = week.end,
                             type = week.type,
-                            day = e.day + 1,
+                            day = e.day,
                             note = e.note,
                             credit = e.credit,
                             startTime = e.startTime,
@@ -182,14 +182,12 @@ class SUESParser(source: String) : Parser(source) {
             }
         }
 
-        if (firstDay < 8 && firstWeek <= termLength) {
-            firstCourseDate.minusDays(((firstWeek - 1) * 7 + firstDay - 1).toLong())
-            firstCourseDate.minusDays((firstCourseDate.dayOfWeek.value - 2).toLong())
+        if (firstDay < 8 && firstWeek <= termLength && firstCourseDate != LocalDate.of(1970, 1, 1)) {
+            firstCourseDate = firstCourseDate.minusDays(((firstWeek - 1) * 7 + firstDay - 1).toLong())
+            firstCourseDate = firstCourseDate.minusDays((firstCourseDate.dayOfWeek.value - 1).toLong())
+            return cnFormatter.format(firstCourseDate)
         }
-        if (firstCourseDate == LocalDate.of(1970, 1, 1)) {
-            return "2021-9-6" //找不到就摆烂了，返回Generator原来包含的日期
-        }
-        return cnFormatter.format(firstCourseDate)
+        return "2021-9-6" //找不到就摆烂了，返回Generator原来包含的日期
     }
 
     //生成时间表
@@ -271,7 +269,7 @@ class SUESParser(source: String) : Parser(source) {
                 val teacher = courseData.groupValues[2]
                 val weeks = getWeeks(courseData.groupValues[7])
                 val sectionData = Regex("""index =(.*?)\*unitCount\+(.*?);""").findAll(i)
-                val day = sectionData.first().groupValues[1].toInt()
+                val day = sectionData.first().groupValues[1].toInt() + 1
                 val sectionDays = arrayListOf<Int>()
 
                 sectionData.forEach {

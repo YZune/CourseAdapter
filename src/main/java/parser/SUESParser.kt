@@ -16,7 +16,7 @@ class SUESParser(source: String) : Parser(source) {
     private val dom = Jsoup.parse(source)
 
     //“按照时间顺序处理课程”
-    var followTimeOrder = false
+    var followTimeOrder = true
 
     //类似“小爱课程表”的自定义课程数据类
     data class MyCourse(

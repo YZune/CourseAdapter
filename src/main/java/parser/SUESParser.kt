@@ -16,7 +16,7 @@ class SUESParser(source: String) : Parser(source) {
     private val dom = Jsoup.parse(source)
 
     //“按照时间顺序处理课程”
-    var followTimeOrder = false
+    var followTimeOrder = true
 
     //类似“小爱课程表”的自定义课程数据类
     data class MyCourse(
@@ -294,10 +294,11 @@ class SUESParser(source: String) : Parser(source) {
                 }
 
                 //D、E、F楼的第3、4节课10:25开始，11:55下课
+                //J302、J303跟随DEF楼上下课时间
                 //但似乎该项目的生成流程会忽略startTime与endTime参数
                 var startTime = ""
                 var endTime = ""
-                if (Regex("""[DEF][0-9]{3}多""").matches(position) &&
+                if (Regex("""([DEF][0-9]{3}|J302|J303)多""").matches(position) &&
                     sectionDays.first() == 3 &&
                     sectionDays.last() == 4
                 ) {

@@ -46,7 +46,7 @@ class SUESParser(source: String) : Parser(source) {
             if (s.isNotEmpty()) {
                 var temp = arrayListOf(s[0])
                 for (i in 1 until s.count()) {
-                    if (s[i - 1] + 1 != s[i]) {
+                    if (s[i - 1] + 1 != s[i] || s[i-1] == 4) {
                         sections.add(temp)
                         temp = arrayListOf(s[i])
                     } else {

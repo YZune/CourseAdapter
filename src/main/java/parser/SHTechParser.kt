@@ -172,11 +172,9 @@ class SHTechParser(source: String) : Parser(source) {
                 }
             }
         }
-        //println(table)
+
         merge(to_return)
-        //println(to_return)
-        mergeTeacher(to_return)
-        //println(to_return)
+
         return to_return
     }
 
@@ -286,33 +284,6 @@ class SHTechParser(source: String) : Parser(source) {
         }
     }
 
-    fun mergeTeacher(data: ArrayList<CourseWeb>) {
-        var i = 0
-        while (i < data.size) {
-            val a = data[i]
-            var j = i + 1
-            while (j < data.size) {
-                val b = data[j]
-                if (a.classMate == b.classMate
-                    && a.schedule.weekday == b.schedule.weekday
-                    //&& a.schedule.weekStart == b.schedule.weekStart
-                    //&& a.schedule.weekEnd == b.schedule.weekEnd
-                    && a.schedule.classRoom == b.schedule.classRoom
-                    && a.schedule.LessonEnd == b.schedule.LessonEnd
-                    && a.schedule.LessonStart == b.schedule.LessonStart
-                ) {
-                    if (a.schedule.teacher != b.schedule.teacher)
-                        a.schedule.teacher += "," + b.schedule.teacher
-
-                    a.isNeedCheck = true
-                    data.remove(b)
-                } else {
-                    j++
-                }
-            }
-            i++
-        }
-    }
 
 
     class CourseSchedule

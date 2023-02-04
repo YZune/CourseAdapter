@@ -6,7 +6,7 @@ import main.java.bean.TimeTable
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Element
 import parser.Parser
-import java.io.File
+
 
 class SHTechParser(source: String) : Parser(source) {
     /**@author mhk
@@ -20,13 +20,11 @@ class SHTechParser(source: String) : Parser(source) {
 <>以下提示可以帮助你避免在不知情的情况下翘课.<>
 1.对于研究生选修本科生课的情况,教务系统中显示的课表中可能没有课程的标题信息.
 2.对于SIST/SLST/SPST以外的其他学院开设的课程,教务系统中显示的课表中可能没有课程的标题信息.
-3.对于一门课有多位教师的情况,课表不仅会为每一位教师生成一门单独的课,还有一定概率出现周数的错乱.
-对于情况1/2,课程标题暂且展示为班级+教师信息.
-对于情况3周数错乱导致“时间倒流”的情况会被自动覆盖为1~17周.
-不论这种覆盖有没有发生,均不能认为周数信息是可靠的,请务必手动检查周数.
+3.对于一门课有多位教师的情况,有一定概率出现周数的错乱.
+对于bug1/2,课程标题暂且展示为班级+教师信息.
+2022.09.01教务系统扩容后,bug3似乎不再出现
 <>请务必通过 我的培养-排课结果查询 手动检查周数.<>
-对于情况3不同教师进行合并,教师顺序与课表中展示的一致.
-这些问题均出自教务系统的限制,对于未有明确修正说明的情况本工具均“依样”输出.
+这些问题均出自教务系统的bug,对于未有明确修正说明的情况本工具均“依样”输出.
 <>建议自行在我的培养-排课结果查询 利用教室信息查询并手动修正.<>
 如果你遇到其他问题,可以带上截图及课表页面HTML发邮件到 y@wanghy.gq .
      */
@@ -207,7 +205,7 @@ class SHTechParser(source: String) : Parser(source) {
              * */
     {
         strNum = "([1-9][0-9]*)"
-        var aScheduleO: CourseSchedule
+        val aScheduleO: CourseSchedule
 
         val regWeek2 = Regex(strWeek2_2)
         val except: ArrayList<Int> = ArrayList()
@@ -299,8 +297,8 @@ class SHTechParser(source: String) : Parser(source) {
                 val b = data[j]
                 if (a.classMate == b.classMate
                     && a.schedule.weekday == b.schedule.weekday
-                    //&& a.schedule.weekStart == b.schedule.weekStart
-                    //&& a.schedule.weekEnd == b.schedule.weekEnd
+                    && a.schedule.weekStart == b.schedule.weekStart
+                    && a.schedule.weekEnd == b.schedule.weekEnd
                     && a.schedule.classRoom == b.schedule.classRoom
                     && a.schedule.LessonEnd == b.schedule.LessonEnd
                     && a.schedule.LessonStart == b.schedule.LessonStart

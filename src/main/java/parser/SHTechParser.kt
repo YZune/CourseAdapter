@@ -113,8 +113,10 @@ class SHTechParser(source: String) : Parser(source) {
     fun getCourseWeb(html: String): ArrayList<CourseWeb> {
         val to_return = ArrayList<CourseWeb>()
         val document = Jsoup.parse(html)
-        val table = document.getElementById("div-table")
-        //println(table)
+        val frame = document.getElementsByAttributeValue("src","./inputSelf2_files/WitMis_LookCourseTable.html")
+        val frameHtml=frame.text()
+        val frameDocument=Jsoup.parse(frameHtml)
+        val table = frameDocument.getElementById("div-table")
         val trs = table?.select("tr")!!
 
         val addTd = ArrayList<ArrayList<Int>>(14)

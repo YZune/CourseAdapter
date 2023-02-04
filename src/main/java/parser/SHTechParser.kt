@@ -16,14 +16,10 @@ class SHTechParser(source: String) : Parser(source) {
      */
     /*
 欢迎使用上海科技大学研究生课表导入工具,本科生小朋友请出门左转用树维系统导入工具导入.
-登录后,请打开 我的培养-查看课表 再导入.
-<>以下提示可以帮助你避免在不知情的情况下翘课.<>
+登录后,请打开 我的培养-查看课表 再导入.如果右上角用户角色为 答辩秘书,还需要先切换为 研究生.
 1.对于研究生选修本科生课的情况,教务系统中显示的课表中可能没有课程的标题信息.
 2.对于SIST/SLST/SPST以外的其他学院开设的课程,教务系统中显示的课表中可能没有课程的标题信息.
-3.对于一门课有多位教师的情况,有一定概率出现周数的错乱.
-对于bug1/2,课程标题暂且展示为班级+教师信息.
-2022.09.01教务系统扩容后,bug3似乎不再出现
-<>请务必通过 我的培养-排课结果查询 手动检查周数.<>
+对于这些情况,课程标题暂且展示为班级+教师信息.
 这些问题均出自教务系统的bug,对于未有明确修正说明的情况本工具均“依样”输出.
 <>建议自行在我的培养-排课结果查询 利用教室信息查询并手动修正.<>
 如果你遇到其他问题,可以带上截图及课表页面HTML发邮件到 y@wanghy.gq .
@@ -280,7 +276,7 @@ class SHTechParser(source: String) : Parser(source) {
                     //&& a.schedule.except.equals(b.schedule.except)
                     && a.schedule.LessonEnd == b.schedule.LessonStart - 1
                 ) {
-                    a.schedule.LessonEnd = b.schedule.LessonStart
+                    a.schedule.LessonEnd = b.schedule.LessonEnd
                     data.remove(b)
                 } else {
                     j++
@@ -299,14 +295,15 @@ class SHTechParser(source: String) : Parser(source) {
                 val b = data[j]
                 if (a.classMate == b.classMate
                     && a.schedule.weekday == b.schedule.weekday
-                    && a.schedule.weekStart == b.schedule.weekStart
-                    && a.schedule.weekEnd == b.schedule.weekEnd
+                    //&& a.schedule.weekStart == b.schedule.weekStart
+                    //&& a.schedule.weekEnd == b.schedule.weekEnd
                     && a.schedule.classRoom == b.schedule.classRoom
                     && a.schedule.LessonEnd == b.schedule.LessonEnd
                     && a.schedule.LessonStart == b.schedule.LessonStart
                 ) {
+                    if (a.schedule.teacher != b.schedule.teacher)
+                        a.schedule.teacher += "," + b.schedule.teacher
 
-                    a.schedule.teacher += "," + b.schedule.teacher
                     a.isNeedCheck = true
                     data.remove(b)
                 } else {

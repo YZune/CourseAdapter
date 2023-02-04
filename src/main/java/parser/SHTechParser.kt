@@ -11,6 +11,7 @@ import parser.Parser
 class SHTechParser(source: String) : Parser(source) {
     /**@author mhk
      * @date 20220821
+     * @update 20230204
      * 上海科技大学研究生教务导入
      * https://grad.shanghaitech.edu.cn/public/WitMis_LookCourseTable.aspx
      */
@@ -109,9 +110,9 @@ class SHTechParser(source: String) : Parser(source) {
     fun getCourseWeb(html: String): ArrayList<CourseWeb> {
         val to_return = ArrayList<CourseWeb>()
         val document = Jsoup.parse(html)
-        val frame = document.getElementsByAttributeValue("src","./inputSelf2_files/WitMis_LookCourseTable.html")
-        val frameHtml=frame.text()
-        val frameDocument=Jsoup.parse(frameHtml)
+        val frame = document.getElementsByAttributeValue("src", "./inputSelf2_files/WitMis_LookCourseTable.html")
+        val frameHtml = frame.text()
+        val frameDocument = Jsoup.parse(frameHtml)
         val table = frameDocument.getElementById("div-table")
         val trs = table?.select("tr")!!
 
@@ -283,7 +284,6 @@ class SHTechParser(source: String) : Parser(source) {
             i++
         }
     }
-
 
 
     class CourseSchedule

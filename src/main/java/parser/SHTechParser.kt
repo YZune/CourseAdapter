@@ -6,27 +6,22 @@ import main.java.bean.TimeTable
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Element
 import parser.Parser
-import java.io.File
+
 
 class SHTechParser(source: String) : Parser(source) {
     /**@author mhk
      * @date 20220821
+     * @update 20230204
      * 上海科技大学研究生教务导入
      * https://grad.shanghaitech.edu.cn/public/WitMis_LookCourseTable.aspx
      */
     /*
 欢迎使用上海科技大学研究生课表导入工具,本科生小朋友请出门左转用树维系统导入工具导入.
-登录后,请打开 我的培养-查看课表 再导入.
-<>以下提示可以帮助你避免在不知情的情况下翘课.<>
+登录后,请打开 我的培养-查看课表 再导入.如果右上角用户角色为 答辩秘书,还需要先切换为 研究生.
 1.对于研究生选修本科生课的情况,教务系统中显示的课表中可能没有课程的标题信息.
 2.对于SIST/SLST/SPST以外的其他学院开设的课程,教务系统中显示的课表中可能没有课程的标题信息.
-3.对于一门课有多位教师的情况,课表不仅会为每一位教师生成一门单独的课,还有一定概率出现周数的错乱.
-对于情况1/2,课程标题暂且展示为班级+教师信息.
-对于情况3周数错乱导致“时间倒流”的情况会被自动覆盖为1~17周.
-不论这种覆盖有没有发生,均不能认为周数信息是可靠的,请务必手动检查周数.
-<>请务必通过 我的培养-排课结果查询 手动检查周数.<>
-对于情况3不同教师进行合并,教师顺序与课表中展示的一致.
-这些问题均出自教务系统的限制,对于未有明确修正说明的情况本工具均“依样”输出.
+对于这些情况,课程标题暂且展示为班级+教师信息.
+这些问题均出自教务系统的bug,对于未有明确修正说明的情况本工具均“依样”输出.
 <>建议自行在我的培养-排课结果查询 利用教室信息查询并手动修正.<>
 如果你遇到其他问题,可以带上截图及课表页面HTML发邮件到 y@wanghy.gq .
      */
@@ -115,8 +110,10 @@ class SHTechParser(source: String) : Parser(source) {
     fun getCourseWeb(html: String): ArrayList<CourseWeb> {
         val to_return = ArrayList<CourseWeb>()
         val document = Jsoup.parse(html)
-        val table = document.getElementById("div-table")
-        //println(table)
+        val frame = document.getElementsByAttributeValue("src", "./inputSelf2_files/WitMis_LookCourseTable.html")
+        val frameHtml = frame.text()
+        val frameDocument = Jsoup.parse(frameHtml)
+        val table = frameDocument.getElementById("div-table")
         val trs = table?.select("tr")!!
 
         val addTd = ArrayList<ArrayList<Int>>(14)
@@ -176,11 +173,9 @@ class SHTechParser(source: String) : Parser(source) {
                 }
             }
         }
-        //println(table)
+
         merge(to_return)
-        //println(to_return)
-        mergeTeacher(to_return)
-        //println(to_return)
+
         return to_return
     }
 
@@ -207,7 +202,7 @@ class SHTechParser(source: String) : Parser(source) {
              * */
     {
         strNum = "([1-9][0-9]*)"
-        var aScheduleO: CourseSchedule
+        val aScheduleO: CourseSchedule
 
         val regWeek2 = Regex(strWeek2_2)
         val except: ArrayList<Int> = ArrayList()
@@ -280,34 +275,7 @@ class SHTechParser(source: String) : Parser(source) {
                     //&& a.schedule.except.equals(b.schedule.except)
                     && a.schedule.LessonEnd == b.schedule.LessonStart - 1
                 ) {
-                    a.schedule.LessonEnd = b.schedule.LessonStart
-                    data.remove(b)
-                } else {
-                    j++
-                }
-            }
-            i++
-        }
-    }
-
-    fun mergeTeacher(data: ArrayList<CourseWeb>) {
-        var i = 0
-        while (i < data.size) {
-            val a = data[i]
-            var j = i + 1
-            while (j < data.size) {
-                val b = data[j]
-                if (a.classMate == b.classMate
-                    && a.schedule.weekday == b.schedule.weekday
-                    //&& a.schedule.weekStart == b.schedule.weekStart
-                    //&& a.schedule.weekEnd == b.schedule.weekEnd
-                    && a.schedule.classRoom == b.schedule.classRoom
-                    && a.schedule.LessonEnd == b.schedule.LessonEnd
-                    && a.schedule.LessonStart == b.schedule.LessonStart
-                ) {
-
-                    a.schedule.teacher += "," + b.schedule.teacher
-                    a.isNeedCheck = true
+                    a.schedule.LessonEnd = b.schedule.LessonEnd
                     data.remove(b)
                 } else {
                     j++

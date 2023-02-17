@@ -49,9 +49,14 @@ class SHTechParser(source: String) : Parser(source) {
     }
 
     override fun generateCourseList(): List<Course> {
-        val courseWebs = getCourseWeb(source)
-        val to_return = courseWebs.flatMap { transform(it) }
-        return to_return
+        source.split("<head>", "</head>").forEach forHTML@{ html ->
+            val courseWebs = getCourseWeb(html)
+            val to_return = courseWebs.flatMap { transform(it) }
+            if (to_return.isNotEmpty()) {
+                return to_return.toCollection(ArrayList())
+            }
+        }
+        return arrayListOf()
     }
 
 
@@ -114,7 +119,7 @@ class SHTechParser(source: String) : Parser(source) {
         val frameHtml = frame.text()
         val frameDocument = Jsoup.parse(frameHtml)
         val table = frameDocument.getElementById("div-table")
-        val trs = table?.select("tr")!!
+        val trs = table?.select("tr") ?: return arrayListOf()
 
         val addTd = ArrayList<ArrayList<Int>>(14)
         for (i in 1..14) {

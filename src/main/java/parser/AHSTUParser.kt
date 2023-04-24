@@ -6,6 +6,8 @@ import java.util.TreeMap
 import org.jsoup.Connection
 import com.google.gson.Gson
 import java.util.regex.Pattern
+import main.java.bean.TimeDetail
+import main.java.bean.TimeTable
 import main.java.exception.ServerErrorException
 import main.java.parser.supwisdom.SupwisdomParser
 import main.java.exception.CheckCodeErrorException
@@ -13,6 +15,23 @@ import main.java.exception.CheckCodeErrorException
 //安徽科技学院
 //http://www.ahstu.edu.cn/
 class AHSTUParser(source: String) : SupwisdomParser(source = source) {
+    //http://www.ahstu.edu.cn/jwc/info/2002/8178.htm
+    val timeTable = TimeTable(
+        name = "安科时间表", timeList = listOf(
+            TimeDetail(1, "08:00", "08:45"),
+            TimeDetail(2, "08:55", "09:40"),
+            TimeDetail(3, "10:00", "10:45"),
+            TimeDetail(4, "10:55", "11:40"),
+            TimeDetail(5, "14:00", "14:45"),
+            TimeDetail(6, "14:55", "15:40"),
+            TimeDetail(7, "16:00", "16:45"),
+            TimeDetail(8, "16:55", "17:40"),
+            TimeDetail(9, "19:00", "19:45"),
+            TimeDetail(10, "19:55", "20:40"),
+            TimeDetail(11, "20:50", "21:35")
+        )
+    )
+
 }
 
 
@@ -133,10 +152,12 @@ class AHSTUCourseProvider {
      */
     fun getImportOption(): ArrayList<ImportOption> {
         //需要先访问这个地址才能获得学期选项
-        Jsoup.connect("http://jwxt.ahstu.edu.cn/eams/courseTableForStd.action")
+        //2023/4/26 将此结果缓存，否则在 getCourseHtml 中服务器出现 `请不要点击过快`的错误
+        courseTable = Jsoup.connect("http://jwxt.ahstu.edu.cn/eams/courseTableForStd.action")
             .cookies(Cookies)
             .method(GET)
             .execute()
+            .body()
 
         val body = Jsoup.connect(JWXT_DATA_QUERY_URL)
             .method(POST)
@@ -168,18 +189,20 @@ class AHSTUCourseProvider {
     }
 
     //5.获取对应id的课程表
+    private lateinit var courseTable: String //getImportOption 中缓存此变量
     fun getCourseHtml(semester: Semester): String {
         /**
          * @param semester: 选中的学期
          */
-        val tp1 = Jsoup.connect("$JWXT_URL/eams/courseTableForStd.action")
-            .method(Connection.Method.GET)
-            .cookies(Cookies)
-            .execute().body()
         val ids_pattern = Pattern.compile("addInput\\(form,\"ids\",\"(\\d+)\"\\)")
-        val ids_matcher = ids_pattern.matcher(tp1)
+        val ids_matcher = ids_pattern.matcher(courseTable)
         ids_matcher.find()
-        val ids: String = ids_matcher.group(1)
+        val ids: String
+        try {
+            ids = ids_matcher.group(1)
+        } catch (e: IllegalStateException) {
+            throw ServerErrorException("获取课表 ids 时出错")
+        }
         val semesterId: String = semester.id.toString()
 
         val courseHtml: String = Jsoup.connect("$JWXT_URL/eams/courseTableForStd!courseTable.action")
@@ -192,7 +215,7 @@ class AHSTUCourseProvider {
             .body()
 
         val html = Jsoup.parse(courseHtml)
-        val js = html.select("div#ExportA > script")[0]
+        val js = html.selectFirst("div#ExportA > script")
         return js.html()
     }
 }

@@ -298,7 +298,7 @@ class SUESParser(source: String) : Parser(source) {
                 //但似乎该项目的生成流程会忽略startTime与endTime参数
                 var startTime = ""
                 var endTime = ""
-                if (Regex("""([DEF][0-9]{3}|J302|J303)多""").matches(position) &&
+                if (Regex("""^([DEF][0-9]{3}|J302|J303)(多|\(中外教室）)$""").matches(position) &&
                     sectionDays.first() == 3 &&
                     sectionDays.last() == 4
                 ) {

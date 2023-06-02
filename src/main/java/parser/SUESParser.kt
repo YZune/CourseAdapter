@@ -40,7 +40,8 @@ class SUESParser(source: String) : Parser(source) {
         val res = arrayListOf<Course>()
 
         courseInfos.forEach { e ->
-            //将非连续的节次分段
+            //将非连续的节次以及跨越中午的节次分段
+            var splitMidday = false
             val sections = arrayListOf<List<Int>>()
             val s = e.sections
             if (s.isNotEmpty()) {
@@ -51,6 +52,9 @@ class SUESParser(source: String) : Parser(source) {
                         temp = arrayListOf(s[i])
                     } else {
                         temp.add(s[i])
+                    }
+                    if (s[i - 1] == 4 && s[i] == 5) {
+                        splitMidday = true
                     }
                 }
                 sections.add(temp)
@@ -63,7 +67,7 @@ class SUESParser(source: String) : Parser(source) {
                         Course(
                             name = e.name,
                             teacher = e.teacher,
-                            room = e.position,
+                            room = if (splitMidday && it.last() == 4) e.position + "[上午]" else if (splitMidday && it.first() == 5) e.position + "[下午]" else e.position,
                             startNode = it.first(),
                             endNode = it.last(),
                             startWeek = week.start,
@@ -255,8 +259,6 @@ class SUESParser(source: String) : Parser(source) {
     //生成课程列表
     override fun generateCourseList(): List<Course> {
         //把原来存在对象里的信息清空
-        //否则像ECUPLTest那样先generateCourseList
-        //再在saveCourse里generate一次课表就乱了
         courseInfos.clear()
         getMaxWeek()
         Regex("activity = new TaskActivity").split(source).forEach { i ->
@@ -298,7 +300,7 @@ class SUESParser(source: String) : Parser(source) {
                 //但似乎该项目的生成流程会忽略startTime与endTime参数
                 var startTime = ""
                 var endTime = ""
-                if (Regex("""([DEF][0-9]{3}|J302|J303)多""").matches(position) &&
+                if (Regex("""^([DEF][0-9]{3}|J302|J303)(多|\(中外教室）)$""").matches(position) &&
                     sectionDays.first() == 3 &&
                     sectionDays.last() == 4
                 ) {

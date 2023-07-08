@@ -67,7 +67,7 @@ class SUESParser(source: String) : Parser(source) {
                         Course(
                             name = e.name,
                             teacher = e.teacher,
-                            room = if (splitMidday && it.last() == 4) e.position + "[上午]" else if (splitMidday && it.first() == 5) e.position + "[下午]" else e.position,
+                            room = e.position,
                             startNode = it.first(),
                             endNode = it.last(),
                             startWeek = week.start,

@@ -38,7 +38,6 @@ class SUESParser2(source: String) : Parser(source) {
             .execute().body()
 
     private var personID = Regex("var personId = ([0-9]*?);").find(tableHTML)?.groupValues?.get(1)
-        ?: throw EmptyException("没有获取到周数，请检查课表中是否有课。")
 
     //从课表页面读取学期信息
     private val courseTableText =
@@ -99,14 +98,16 @@ class SUESParser2(source: String) : Parser(source) {
 
     override fun getMaxWeek(): Int {
         var weeks = 30
-        val weeksDataUrl = "$baseURL/student/for-std/course-table/get-data?semesterId=${semester!!.id}&dataId=$personID&bizTypeId=2"
-        val weeksDataJson = Jsoup.connect(weeksDataUrl).header("Cookie", source)
-            .ignoreContentType(true)
-            .execute().body()
-        val weeksDataObject = JsonParser.parseString(weeksDataJson).asJsonObject
-        if (weeksDataObject.getAsJsonArray("weekIndices").size() > 0) {
-            val weekIndices = weeksDataObject.getAsJsonArray("weekIndices")
-            weeks = weekIndices[weekIndices.size() - 1].asInt
+        if(personID != null){
+            val weeksDataUrl = "$baseURL/student/for-std/course-table/get-data?semesterId=${semester!!.id}&dataId=$personID&bizTypeId=2"
+            val weeksDataJson = Jsoup.connect(weeksDataUrl).header("Cookie", source)
+                .ignoreContentType(true)
+                .execute().body()
+            val weeksDataObject = JsonParser.parseString(weeksDataJson).asJsonObject
+            if (weeksDataObject.getAsJsonArray("weekIndices").size() > 0) {
+                val weekIndices = weeksDataObject.getAsJsonArray("weekIndices")
+                weeks = weekIndices[weekIndices.size() - 1].asInt
+            }
         }
         return weeks
     }
@@ -124,7 +125,10 @@ class SUESParser2(source: String) : Parser(source) {
         if (json==null)
             throw EmptyException("没有获取到课表，请检查课表中是否有课。")
         timetable = json!!.getAsJsonArray("studentTableVms")[0].asJsonObject.getAsJsonObject("timeTableLayout")
-        return json!!.getAsJsonArray("studentTableVms")[0].asJsonObject.getAsJsonArray("activities").map { it ->
+        return json!!.getAsJsonArray("studentTableVms")[0]
+            .asJsonObject.getAsJsonArray("activities")
+            .filter{ e -> !e.asJsonObject.get("room").isJsonNull }
+            .map { it ->
             fun getTime(room: String, node: Int, end: Boolean, fallback: String): String {
                 return if (Regex("""([AF][0-9]{3}|J301)多""").matches(room)) {
                     when (node) {

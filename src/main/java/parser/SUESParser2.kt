@@ -156,32 +156,78 @@ class SUESParser2(source: String) : Parser(source) {
             Common.weekIntList2WeekBeanList(it.asJsonObject.getAsJsonArray("weekIndexes").map { i ->
                 i.asInt
             }.toMutableList()).map { week ->
-                Course(
-                    name = it.asJsonObject.get("courseName").asString,
-                    teacher = it.asJsonObject.getAsJsonArray("teachers").map { it.asString }.joinToString(" "),
-                    room = it.asJsonObject.get("room").asString,
-                    startNode = it.asJsonObject.get("startUnit").asInt,
-                    endNode = it.asJsonObject.get("endUnit").asInt,
-                    startWeek = week.start,
-                    endWeek = week.end,
-                    type = week.type,
-                    day = it.asJsonObject.get("weekday").asInt,
-                    note = it.asJsonObject.get("lessonRemark").let { n -> if (n.isJsonNull) "" else n.asString },
-                    credit = it.asJsonObject.get("credits").asFloat,
-                    startTime = getTime(
-                        it.asJsonObject.get("room").asString,
-                        it.asJsonObject.get("startUnit").asInt,
-                        false,
-                        it.asJsonObject.get("startTime").asString
-                    ),
-                    endTime = getTime(
-                        it.asJsonObject.get("room").asString,
-                        it.asJsonObject.get("endUnit").asInt,
-                        true,
-                        it.asJsonObject.get("endTime").asString
-                    )
-                )
-            }
+                val startNode=it.asJsonObject.get("startUnit").asInt
+                val endNode=it.asJsonObject.get("endUnit").asInt
+                if(startNode<=5&&endNode>=6){
+                    arrayListOf(Course(
+                        name = it.asJsonObject.get("courseName").asString,
+                        teacher = it.asJsonObject.getAsJsonArray("teachers").map { it.asString }.joinToString(" "),
+                        room = it.asJsonObject.get("room").asString,
+                        startNode = startNode,
+                        endNode = 5,
+                        startWeek = week.start,
+                        endWeek = week.end,
+                        type = week.type,
+                        day = it.asJsonObject.get("weekday").asInt,
+                        note = it.asJsonObject.get("lessonRemark").let { n -> if (n.isJsonNull) "" else n.asString },
+                        credit = it.asJsonObject.get("credits").asFloat,
+                        startTime = getTime(
+                            it.asJsonObject.get("room").asString,
+                            startNode,false,
+                            it.asJsonObject.get("startTime").asString
+                        ),
+                        endTime = getTime(
+                            it.asJsonObject.get("room").asString,
+                            5,true,"12:20"
+                        )
+                    ),Course(
+                        name = it.asJsonObject.get("courseName").asString,
+                        teacher = it.asJsonObject.getAsJsonArray("teachers").map { it.asString }.joinToString(" "),
+                        room = it.asJsonObject.get("room").asString,
+                        startNode = 6,
+                        endNode = endNode,
+                        startWeek = week.start,
+                        endWeek = week.end,
+                        type = week.type,
+                        day = it.asJsonObject.get("weekday").asInt,
+                        note = it.asJsonObject.get("lessonRemark").let { n -> if (n.isJsonNull) "" else n.asString },
+                        credit = it.asJsonObject.get("credits").asFloat,
+                        startTime = getTime(
+                            it.asJsonObject.get("room").asString,
+                            6,false,"13:20"
+                        ),
+                        endTime = getTime(
+                            it.asJsonObject.get("room").asString,
+                            endNode,true,
+                            it.asJsonObject.get("endTime").asString
+                        )
+                    ))
+                }else{
+                    arrayListOf(Course(
+                        name = it.asJsonObject.get("courseName").asString,
+                        teacher = it.asJsonObject.getAsJsonArray("teachers").map { it.asString }.joinToString(" "),
+                        room = it.asJsonObject.get("room").asString,
+                        startNode = startNode,
+                        endNode = endNode,
+                        startWeek = week.start,
+                        endWeek = week.end,
+                        type = week.type,
+                        day = it.asJsonObject.get("weekday").asInt,
+                        note = it.asJsonObject.get("lessonRemark").let { n -> if (n.isJsonNull) "" else n.asString },
+                        credit = it.asJsonObject.get("credits").asFloat,
+                        startTime = getTime(
+                            it.asJsonObject.get("room").asString,
+                            startNode,false,
+                            it.asJsonObject.get("startTime").asString
+                        ),
+                        endTime = getTime(
+                            it.asJsonObject.get("room").asString,
+                            endNode,true,
+                            it.asJsonObject.get("endTime").asString
+                        )
+                    ))
+                }
+            }.flatten()
         }.flatten()
     }
 }

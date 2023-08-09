@@ -264,6 +264,7 @@ class SIMCParser(source: String) : Parser(source) {
                             )
                         }
                     }
+                    courseInfos.remove(same)
                 }
             }
         }

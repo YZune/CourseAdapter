@@ -38,7 +38,6 @@ class SUESParser2(source: String) : Parser(source) {
             .execute().body()
 
     private var personID = Regex("var personId = ([0-9]*?);").find(tableHTML)?.groupValues?.get(1)
-        ?: throw EmptyException("没有获取到周数，请检查课表中是否有课。")
 
     //从课表页面读取学期信息
     private val courseTableText =
@@ -99,14 +98,16 @@ class SUESParser2(source: String) : Parser(source) {
 
     override fun getMaxWeek(): Int {
         var weeks = 30
-        val weeksDataUrl = "$baseURL/student/for-std/course-table/get-data?semesterId=${semester!!.id}&dataId=$personID&bizTypeId=2"
-        val weeksDataJson = Jsoup.connect(weeksDataUrl).header("Cookie", source)
-            .ignoreContentType(true)
-            .execute().body()
-        val weeksDataObject = JsonParser.parseString(weeksDataJson).asJsonObject
-        if (weeksDataObject.getAsJsonArray("weekIndices").size() > 0) {
-            val weekIndices = weeksDataObject.getAsJsonArray("weekIndices")
-            weeks = weekIndices[weekIndices.size() - 1].asInt
+        if (personID != null) {
+            val weeksDataUrl = "$baseURL/student/for-std/course-table/get-data?semesterId=${semester!!.id}&dataId=$personID&bizTypeId=2"
+            val weeksDataJson = Jsoup.connect(weeksDataUrl).header("Cookie", source)
+                .ignoreContentType(true)
+                .execute().body()
+            val weeksDataObject = JsonParser.parseString(weeksDataJson).asJsonObject
+            if (weeksDataObject.getAsJsonArray("weekIndices").size() > 0) {
+                val weekIndices = weeksDataObject.getAsJsonArray("weekIndices")
+                weeks = weekIndices[weekIndices.size() - 1].asInt
+            }
         }
         return weeks
     }
@@ -117,67 +118,126 @@ class SUESParser2(source: String) : Parser(source) {
         json = JsonParser.parseString(Jsoup.connect(baseURL
                 + "/student/for-std/course-table/semester/${semester!!.id}/print-data"
                 + "?semesterId=${semester!!.id}&hasExperiment=true"
-        ).header("Cookie", source)
-            .ignoreContentType(true)
-            .execute().body()
+            ).header("Cookie", source)
+                .ignoreContentType(true)
+                .execute().body()
         ).asJsonObject
-        if (json==null)
+        if (json == null)
             throw EmptyException("没有获取到课表，请检查课表中是否有课。")
         timetable = json!!.getAsJsonArray("studentTableVms")[0].asJsonObject.getAsJsonObject("timeTableLayout")
-        return json!!.getAsJsonArray("studentTableVms")[0].asJsonObject.getAsJsonArray("activities").map { it ->
-            fun getTime(room: String, node: Int, end: Boolean, fallback: String): String {
-                return if (Regex("""([AF][0-9]{3}|J301)多""").matches(room)) {
-                    when (node) {
-                        3 -> if (!end) "09:55" else "10:35"
-                        4 -> if (!end) "10:40" else "11:20"
-                        5 -> if (!end) "11:20" else "12:00"
-                        else -> if (fallback.length == 4) "0$fallback" else fallback
-                    }
-                } else if (Regex("""([DE][0-9]{3}|J303)(多|\(中外教室）)""").matches(room)) {
-                    when (node) {
-                        3 -> if (!end) "10:15" else "10:55"
-                        4 -> if (!end) "10:55" else "11:35"
-                        5 -> if (!end) "11:40" else "12:20"
-                        else -> if (fallback.length == 4) "0$fallback" else fallback
-                    }
-                } else {
-                    when (node) {
-                        3 -> if (!end) "09:55" else "10:35"
-                        4 -> if (!end) "10:35" else "11:15"
-                        5 -> if (!end) "11:20" else "12:00"
-                        else -> if (fallback.length == 4) "0$fallback" else fallback
+        return json!!.getAsJsonArray("studentTableVms")[0]
+            .asJsonObject.getAsJsonArray("activities")
+            .filter { e -> !e.asJsonObject.get("room").isJsonNull }
+            .map { it ->
+                fun getTime(room: String, node: Int, end: Boolean, fallback: String): String {
+                    return if (Regex("""([AF][0-9]{3}|J301)多""").matches(room)) {
+                        when (node) {
+                            3 -> if (!end) "09:55" else "10:35"
+                            4 -> if (!end) "10:40" else "11:20"
+                            5 -> if (!end) "11:20" else "12:00"
+                            else -> if (fallback.length == 4) "0$fallback" else fallback
+                        }
+                    } else if (Regex("""([DE][0-9]{3}|J303)(多|\(中外教室）)""").matches(room)) {
+                        when (node) {
+                            3 -> if (!end) "10:15" else "10:55"
+                            4 -> if (!end) "10:55" else "11:35"
+                            5 -> if (!end) "11:40" else "12:20"
+                            else -> if (fallback.length == 4) "0$fallback" else fallback
+                        }
+                    } else {
+                        when (node) {
+                            3 -> if (!end) "09:55" else "10:35"
+                            4 -> if (!end) "10:35" else "11:15"
+                            5 -> if (!end) "11:20" else "12:00"
+                            else -> if (fallback.length == 4) "0$fallback" else fallback
+                        }
                     }
                 }
-            }
-            Common.weekIntList2WeekBeanList(it.asJsonObject.getAsJsonArray("weekIndexes").map { i ->
-                i.asInt
-            }.toMutableList()).map { week ->
-                Course(
-                    name = it.asJsonObject.get("courseName").asString,
-                    teacher = it.asJsonObject.getAsJsonArray("teachers").map { it.asString }.joinToString(" "),
-                    room = it.asJsonObject.get("room").asString,
-                    startNode = it.asJsonObject.get("startUnit").asInt,
-                    endNode = it.asJsonObject.get("endUnit").asInt,
-                    startWeek = week.start,
-                    endWeek = week.end,
-                    type = week.type,
-                    day = it.asJsonObject.get("weekday").asInt,
-                    note = it.asJsonObject.get("lessonRemark").let { n -> if (n.isJsonNull) "" else n.asString },
-                    credit = it.asJsonObject.get("credits").asFloat,
-                    startTime = getTime(
-                        it.asJsonObject.get("room").asString,
-                        it.asJsonObject.get("startUnit").asInt,
-                        false,
-                        it.asJsonObject.get("startTime").asString
-                    ),
-                    endTime = getTime(
-                        it.asJsonObject.get("room").asString,
-                        it.asJsonObject.get("endUnit").asInt,
-                        true,
-                        it.asJsonObject.get("endTime").asString
-                    )
-                )
-            }
-        }.flatten()
+                Common.weekIntList2WeekBeanList(it.asJsonObject.getAsJsonArray("weekIndexes").map { i ->
+                    i.asInt
+                }.toMutableList()).map { week ->
+                    val startNode = it.asJsonObject.get("startUnit").asInt
+                    val endNode = it.asJsonObject.get("endUnit").asInt
+                    if (startNode <= 5 && endNode >= 6) {
+                        arrayListOf(
+                            Course(
+                                name = it.asJsonObject.get("courseName").asString,
+                                teacher = it.asJsonObject.getAsJsonArray("teachers").map { it.asString }
+                                    .joinToString(" "),
+                                room = it.asJsonObject.get("room").asString,
+                                startNode = startNode,
+                                endNode = 5,
+                                startWeek = week.start,
+                                endWeek = week.end,
+                                type = week.type,
+                                day = it.asJsonObject.get("weekday").asInt,
+                                note = it.asJsonObject.get("lessonRemark")
+                                    .let { n -> if (n.isJsonNull) "" else n.asString },
+                                credit = it.asJsonObject.get("credits").asFloat,
+                                startTime = getTime(
+                                    it.asJsonObject.get("room").asString,
+                                    startNode, false,
+                                    it.asJsonObject.get("startTime").asString
+                                ),
+                                endTime = getTime(
+                                    it.asJsonObject.get("room").asString,
+                                    5, true, "12:20"
+                                )
+                            ), Course(
+                                name = it.asJsonObject.get("courseName").asString,
+                                teacher = it.asJsonObject.getAsJsonArray("teachers").map { it.asString }
+                                    .joinToString(" "),
+                                room = it.asJsonObject.get("room").asString,
+                                startNode = 6,
+                                endNode = endNode,
+                                startWeek = week.start,
+                                endWeek = week.end,
+                                type = week.type,
+                                day = it.asJsonObject.get("weekday").asInt,
+                                note = it.asJsonObject.get("lessonRemark")
+                                    .let { n -> if (n.isJsonNull) "" else n.asString },
+                                credit = it.asJsonObject.get("credits").asFloat,
+                                startTime = getTime(
+                                    it.asJsonObject.get("room").asString,
+                                    6, false, "13:20"
+                                ),
+                                endTime = getTime(
+                                    it.asJsonObject.get("room").asString,
+                                    endNode, true,
+                                    it.asJsonObject.get("endTime").asString
+                                )
+                            )
+                        )
+                    } else {
+                        arrayListOf(
+                            Course(
+                                name = it.asJsonObject.get("courseName").asString,
+                                teacher = it.asJsonObject.getAsJsonArray("teachers").map { it.asString }
+                                    .joinToString(" "),
+                                room = it.asJsonObject.get("room").asString,
+                                startNode = startNode,
+                                endNode = endNode,
+                                startWeek = week.start,
+                                endWeek = week.end,
+                                type = week.type,
+                                day = it.asJsonObject.get("weekday").asInt,
+                                note = it.asJsonObject.get("lessonRemark")
+                                    .let { n -> if (n.isJsonNull) "" else n.asString },
+                                credit = it.asJsonObject.get("credits").asFloat,
+                                startTime = getTime(
+                                    it.asJsonObject.get("room").asString,
+                                    startNode, false,
+                                    it.asJsonObject.get("startTime").asString
+                                ),
+                                endTime = getTime(
+                                    it.asJsonObject.get("room").asString,
+                                    endNode, true,
+                                    it.asJsonObject.get("endTime").asString
+                                )
+                            )
+                        )
+                    }
+                }.flatten()
+            }.flatten()
     }
 }

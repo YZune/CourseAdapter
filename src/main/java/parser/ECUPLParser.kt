@@ -1,20 +1,38 @@
 package main.java.parser
 
 import bean.Course
+import bean.WeekBean
 import main.java.bean.TimeDetail
 import main.java.bean.TimeTable
 import main.java.parser.supwisdom.SupwisdomParser
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Element
-import java.util.Calendar
-import kotlin.math.min
+import parser.Parser
+import java.text.SimpleDateFormat
+import java.util.Locale
 
-class ECUPLParser(source: String) : SupwisdomParser(source) {
-    private var finalWeekFits = false
-    private var firstWeek = 0
-    private var maxWeek = 20
+/** A modified version of [SupwisdomParser]. */
+class ECUPLParser(source: String) : Parser(source) {
 
     private val doc = Jsoup.parse(source)
+
+    private val script = doc.selectFirst("script[language=JavaScript]")?.data() ?: throw Exception("未找到数据")
+    private val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.ENGLISH)
+    private val semesterStart: Long
+    private val timeTable: List<TimePeriod>
+
+    class TimePeriod(val start: Int, val end: Int)
+
+    private fun Int.formatTime() = "%02d:%02d".format(this / 100, this % 100)
+
+    init {
+        val regex = Regex("""new CourseTable\('([-\d]+?)',\[([\d\[\],]+)\]\)""")
+        val match = regex.find(script) ?: throw Exception("未找到起始日和时间表信息")
+        semesterStart = dateFormat.parse(match.groupValues[1]).time
+        timeTable = Regex("""\[(\d+),(\d+)\]""").findAll(match.groupValues[2]).asIterable().map {
+            TimePeriod(it.groupValues[1].toInt(), it.groupValues[2].toInt())
+        }
+    }
 
     data class CourseDetails(
         val name: String,
@@ -58,91 +76,95 @@ class ECUPLParser(source: String) : SupwisdomParser(source) {
     }
 
     override fun generateTimeTable(): TimeTable {
-        val timeList = doc
-            .selectFirst(".listTable")
-            .selectFirst("tr")
-            .select("td")
-            .drop(1)
-            .mapIndexed { i, td ->
-                val text = td.text()
+        val timeList = timeTable
+            .mapIndexed { i, period ->
                 TimeDetail(
                     node = i + 1,
-                    startTime = text.substringBefore('-'),
-                    endTime = text.substringAfter('-')
+                    startTime = period.start.formatTime(),
+                    endTime = period.end.formatTime()
                 )
             }
         return TimeTable(name = "华东政法大学", timeList = timeList)
     }
 
-    override fun getGroup(a: List<String>): String {
-        return ""
-    }
+    private fun parseWeekBeans(yearStartDate: String, rawWeekBits: Long): List<WeekBean> {
+        val yearStart = dateFormat.parse(yearStartDate).time
+        val offsetMillis = yearStart - semesterStart
+        val millisInWeek = 1000L * 86400 * 7
 
-    override fun getCourseName(a: List<String>, groupName: String): String {
-        return a[3].trim()
-    }
-
-    override fun getTeacher(a: List<String>): String {
-        return if (a[1].isBlank()) {
-            "(无教师数据)"
+        val weekOffset = if (offsetMillis >= 0) {
+            offsetMillis / millisInWeek
         } else {
-            a[1].trim()
-        }
-    }
+            (offsetMillis - (millisInWeek - 1)) / millisInWeek
+        }.toInt()
 
-    override fun getRoom(a: List<String>): String {
-        return a[5].trim()
-    }
+        val weeks = ArrayList<Int>(16)
+        val trailingZeros = rawWeekBits.countTrailingZeroBits()
 
-    override fun getWeekStr(a: List<String>): String {
-        val weekStr = a[6]
-        return if (weekStr.substring(0, firstWeek - 1).indexOf('1') < 0) {
-            weekStr.substring(startIndex = firstWeek - 2, endIndex = min(firstWeek - 2 + maxWeek + 1, weekStr.length))
-        } else if (finalWeekFits) {
-            ("0".repeat(53 - firstWeek + 2) + weekStr).substring(0, maxWeek + 1)
-        } else {
-            ("0".repeat(53 - firstWeek + 1) + weekStr).substring(0, maxWeek + 1)
+        var weekBits = rawWeekBits ushr trailingZeros
+        var i = weekOffset + trailingZeros
+        while (weekBits != 0L) {
+            if (weekBits and 1L != 0L) {
+                weeks.add(i)
+            }
+            weekBits = weekBits ushr 1
+            i++
         }
+        return Common.weekIntList2WeekBeanList(weeks)
     }
 
     override fun generateCourseList(): List<Course> {
-        val cal = Calendar.getInstance()
-
-        val yearMatchResult = Regex("""new CourseTable\((\d{4}),\d+\)""").find(source)
-        val year = yearMatchResult?.run { groupValues[1].toInt() } ?: cal.get(Calendar.YEAR)
-        cal.set(year, 11, 31)
-        finalWeekFits = cal.get(Calendar.DAY_OF_WEEK) == Calendar.SATURDAY
-
-        val weekMatchResult = Regex("""table0\.marshalTable\((.+?),(.+?),(.+?)\);""").find(source)
-            ?: throw Exception("未找到本学期的起始周！")
-        run {
-            val (firstWeekStr, _, maxWeekStr) = weekMatchResult.destructured
-            firstWeek = firstWeekStr.toInt()
-            maxWeek = maxWeekStr.toInt()
-        }
-
-        val superCourseList = super.generateCourseList()
+        val regex = Regex(
+            """newActivity\(".*?","(.*?)",".+?","(.+?)",".*?","(.*?)","([-\d]+)",(\d+)\);[\n\s\S]+?addActivityByTime\(activity,(\d),(\d+),(\d+)\);"""
+        )
         val courseDetailsMap = parseCourseDetailsTable(doc.select(".listTable")[1])
 
-        return superCourseList.map {
-            val dataCourseName = it.name.substringBeforeLast('(')
-            val courseNumber = it.name.substringAfterLast('(').substringBefore(')')
-            val courseDetails = courseDetailsMap[courseNumber]
-            if (courseDetails == null) {
-                println("未找到课程 $courseNumber 的详细信息")
-                it
+        return regex.findAll(script).asIterable().flatMap { match ->
+            val groupValues = match.groupValues
+
+            val scriptTeacher = groupValues[1]
+            val nameWithNumber = groupValues[2]
+            val number = nameWithNumber.substringAfterLast('(').substringBefore(')')
+
+            val name: String
+            val teacher: String
+            val credit: Float
+            val note: String
+
+            val details = courseDetailsMap[number]
+            if (details != null) {
+                name = details.name
+                teacher = when (scriptTeacher) {
+                    details.teacher, "" -> details.teacher
+                    else -> "$scriptTeacher (${details.teacher})"
+                }
+                credit = details.credit
+                note = details.note
             } else {
-                if (courseDetails.name != dataCourseName) {
-                    println("课程 $courseNumber 名称不一致：表格中为“$dataCourseName”，数据中为“${courseDetails.name}”")
-                }
-                if (it.teacher != "(无教师数据)" && courseDetails.teacher.indexOf(it.teacher) < 0) {
-                    println("课程 $courseNumber 教师信息不一致：表格中为“${courseDetails.teacher}”，数据中为“${it.teacher}”")
-                }
-                it.copy(
-                    name = courseDetails.name, // assert: courseDetails.name == dataCourseName
-                    teacher = courseDetails.teacher,
-                    credit = courseDetails.credit,
-                    note = courseDetails.note
+                name = nameWithNumber.substringBeforeLast('(')
+                teacher = scriptTeacher
+                credit = 0f
+                note = ""
+            }
+
+            val startTime = groupValues[7].toInt()
+            val startPeriod = timeTable.indexOfFirst { it.start == startTime } + 1
+            val endTime = groupValues[8].toInt()
+            val endPeriod = timeTable.indexOfFirst { it.end == endTime } + 1
+
+            parseWeekBeans(groupValues[4], groupValues[5].toLong()).map { weekBean ->
+                Course(
+                    name = name,
+                    day = groupValues[6].toInt(),
+                    room = groupValues[3],
+                    teacher = teacher,
+                    startNode = startPeriod,
+                    endNode = endPeriod,
+                    startWeek = weekBean.start,
+                    endWeek = weekBean.end,
+                    type = weekBean.type,
+                    credit = credit,
+                    note = note,
                 )
             }
         }

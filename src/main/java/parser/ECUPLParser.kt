@@ -118,29 +118,32 @@ class ECUPLParser(source: String) : Parser(source) {
         return regex.findAll(script).asIterable().flatMap { match ->
             val groupValues = match.groupValues
 
-            val scriptTeacher = groupValues[1]
             val nameWithNumber = groupValues[2]
-            val number = nameWithNumber.substringAfterLast('(').substringBefore(')')
+            val splitIndex = nameWithNumber.lastIndexOf('(')
+            val number = nameWithNumber.substring(splitIndex + 1, nameWithNumber.length - 1)
 
-            val name: String
-            val teacher: String
-            val credit: Float
-            val note: String
+            var name = nameWithNumber.substring(0, splitIndex)
+            var teacher = groupValues[1]
+            var location = groupValues[3]
+            var credit = 0f
+            var note = ""
 
             val details = courseDetailsMap[number]
             if (details != null) {
                 name = details.name
-                teacher = when (scriptTeacher) {
-                    details.teacher, "" -> details.teacher
-                    else -> "$scriptTeacher (${details.teacher})"
-                }
                 credit = details.credit
-                note = details.note
-            } else {
-                name = nameWithNumber.substringBeforeLast('(')
-                teacher = scriptTeacher
-                credit = 0f
-                note = ""
+
+                if (teacher.isEmpty()) {
+                    teacher = details.teacher
+                } else if (teacher != details.teacher) {
+                    teacher = "$teacher (${details.teacher})"
+                }
+
+                if ("地点" in details.note) {
+                    location = "$location (${details.note})"
+                } else {
+                    note = details.note
+                }
             }
 
             val startTime = groupValues[7].toInt()
@@ -152,7 +155,7 @@ class ECUPLParser(source: String) : Parser(source) {
                 Course(
                     name = name,
                     day = groupValues[6].toInt(),
-                    room = groupValues[3],
+                    room = location,
                     teacher = teacher,
                     startNode = startPeriod,
                     endNode = endPeriod,

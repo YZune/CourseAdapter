@@ -92,11 +92,7 @@ class ECUPLParser(source: String) : Parser(source) {
         val offsetMillis = yearStart - semesterStart
         val millisInWeek = 1000L * 86400 * 7
 
-        val weekOffset = if (offsetMillis >= 0) {
-            offsetMillis / millisInWeek
-        } else {
-            (offsetMillis - (millisInWeek - 1)) / millisInWeek
-        }.toInt()
+        val weekOffset = offsetMillis.floorDiv(millisInWeek).toInt()
 
         val weeks = ArrayList<Int>(16)
         val trailingZeros = rawWeekBits.countTrailingZeroBits()

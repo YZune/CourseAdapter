@@ -15,38 +15,34 @@ class JLUParser(source:String):Parser(source) {
         val gson = Gson()
         val json = gson.fromJson(source, JLUCourseInfo::class.java)
         val rows = json.datas.xsjxrwcx.rows
-        val pattern = """(\d+)(?:-(\d+))?([单双]?)周\s+(星期[一二三四五六日七])\[(\d+)(?:-(\d+))?节](.+)""".toRegex()
-        val multiWeekPattern = """(\d+)(?:-(\d+))?([单双]?)周""".toRegex() // ”3-5单周,7-12周 星期二[1-4节]“ 应对此类情况
-        val multiWeekNodePattern = """(星期[一二三四五六日七])\[(\d+)(?:-(\d+))?节](.+)""".toRegex()
+        val multiWeekPattern = """(\d+)(?:-(\d+))?([单双]?)周""".toRegex()
+        val dayOfWeekPattern = """(星期[一二三四五六日七])""".toRegex()
+        val nodePattern = """(\d+)(?:-(\d+))?节""".toRegex()
+        val locationPattern = """节](.+)""".toRegex()
         for (row in rows) {
             if (row.PKSJDD==null)
                 continue
-            val courseStrings = row.PKSJDD.split(";")
+        val courseStrings = row.PKSJDD.split(";")
+        // 遍历每个课程字符串并提取信息 courseStrings [3-4周 星期一[1-4节]新民-第一教学楼-101, 5周 星期一[1-4节]新民-第一教学楼-101]
+        for (courseString in courseStrings) {
+                 // ”3-5单周,7-12周 星期二[1-4节]“ 应对此类情况
+                val multiWeekResult = multiWeekPattern.findAll(courseString)
+                val dayOfWeekMatchResult = dayOfWeekPattern.find(courseString)
+                val nodeMatchResult = nodePattern.find(courseString)
+                val locationMatchResult = locationPattern.find(courseString)
 
-            // 遍历每个课程字符串并提取信息 courseStrings [3-4周 星期一[1-4节]新民-第一教学楼-101, 5周 星期一[1-4节]新民-第一教学楼-101]
-            for (courseString in courseStrings) {
-                // 检查是否是 ”3-5单周,7-12周 星期二[1-4节]★通汇222“ 此类情况
-                if (courseString.contains(",")){
-                    val multiWeekResult = multiWeekPattern.findAll(courseString)
-                    val multiWeekNodeResult = multiWeekNodePattern.find(courseString)
-                    if (multiWeekNodeResult != null){
-                        val (dayOfWeek, startSection, endSection, location) = multiWeekNodeResult.destructured
-                        multiWeekResult.forEach {
-                            val (startWeek, endWeek, oddEvenWeek) = it.destructured
-                            val course = createCourse(row, dayOfWeek, location, startSection, endSection, startWeek, endWeek, oddEvenWeek)
-                            result.add(course)
-                            println(course)
-                        }
+                if (dayOfWeekMatchResult != null && nodeMatchResult!=null){
+                    val dayOfWeek = dayOfWeekMatchResult.value
+                    val (startSection, endSection) = nodeMatchResult.destructured
+                    var location = ""
+                    if (locationMatchResult != null) {
+                        location = locationMatchResult.value.replace("节]", "")
                     }
-                    continue
-                }
-
-                val matchResult = pattern.find(courseString)
-                if (matchResult != null) {
-                    val (startWeek, endWeek, oddEvenWeek, dayOfWeek, startSection, endSection, location) = matchResult.destructured
-                    val course = createCourse(row, dayOfWeek, location, startSection, endSection, startWeek, endWeek, oddEvenWeek)
-                    result.add(course)
-                    println(course)
+                    multiWeekResult.forEach {
+                        val (startWeek, endWeek, oddEvenWeek) = it.destructured
+                        val course = createCourse(row, dayOfWeek, location, startSection, endSection, startWeek, endWeek, oddEvenWeek)
+                        result.add(course)
+                    }
                 }
             }
         }

@@ -11,7 +11,7 @@ import java.util.regex.Pattern;
 
 /**
  * 西安建筑科技大学研究生教务
- * 系统登录地址：http://authserver.xauat.edu.cn/authserver/login?service=http%3A%2F%2Fgmis.xauat.edu.cn%2Fpyxx%2Faccount%2Flogin
+ * 系统登录地址：https://gmis.xauat.edu.cn/pyxx
  * 在 教学与培养 -> 课表查询 导入
  * 若有适配不完善，可在本人fork的项目下提issue
  *
@@ -21,6 +21,9 @@ import java.util.regex.Pattern;
 public class XAUATParser extends Parser {
 
     private final String jsInitFunc;
+    // CT:草堂校区，雁塔校区信息暂缺
+    private final Pattern CT_LONG_Pattern = Pattern.compile("草堂校区-草堂校区\\d{1,2}号楼-草堂\\d{1,2}-\\d{1,3}");
+    private final Pattern CT_SHORT_Pattern = Pattern.compile("草堂校区-草堂\\d{1,2}号楼-\\d{1,2}-\\d{1,3}");
 
     public XAUATParser(@NotNull String source) {
         super(source);
@@ -32,8 +35,8 @@ public class XAUATParser extends Parser {
     public List<Course> generateCourseList() {
         String dayRegex = "td_\\d_\\d{2}";
         List<Course> courseList = new ArrayList<>();
-        int startIndex = 0;
-        int endIndex = 0;
+        int startIndex;
+        int endIndex;
         Pattern pattern = Pattern.compile(dayRegex);
         Matcher matcher = pattern.matcher(jsInitFunc);
         while (matcher.find()) {
@@ -70,6 +73,7 @@ public class XAUATParser extends Parser {
                     jCourse.setEndNode(iCourse.getEndNode());
                 }
                 courseList.remove(i);
+                break;
             }
         }
         return courseList;
@@ -82,8 +86,8 @@ public class XAUATParser extends Parser {
         String teacher;   // 老师
         int startNode;    // 开始为第几节课
         int endNode;      // 结束时为第几节课
-        int startWeek = 1;    // 开始周
-        int endWeek = 1;      // 结束周
+        int startWeek;    // 开始周
+        int endWeek;      // 结束周
         int type = 0;         // 单双周，每周为0，单周为1，双周为2
 
         // 节数和星期是表格的id中包含的，例如：td_2_44，其中2代表周二，44代表第4节课（减去40）
@@ -96,8 +100,8 @@ public class XAUATParser extends Parser {
         teacher = info[2].substring(5);
         // 周数和地点在一起，后面用括号标注的周数，例如：
         // 教室:草堂校区-草堂14号楼-14-101(第3-5周 连续周 )
-        // room截掉了开头的校区防止过长（剩余部分还标注的有校区）
-        room = info[3].substring(info[3].indexOf("-") + 1, info[3].indexOf("("));
+        room = info[3].substring(info[3].indexOf(":") + 1, info[3].indexOf("("));
+        room = simplyRoom(room);
         String[] weekInfo = info[3].substring(info[3].indexOf("(") + 1, info[3].length() - 2).split(" ");
         if (weekInfo[0].contains("-")) {
             startWeek = Integer.parseInt(weekInfo[0].substring(1, weekInfo[0].indexOf("-")));
@@ -117,5 +121,18 @@ public class XAUATParser extends Parser {
 
         return new Course(name, day, room, teacher, startNode, endNode, startWeek, endWeek, type, 0.0f,
                 "", "", "");
+    }
+
+    // 简化上课地址字符串，防止过长在app显示时遮挡
+    private String simplyRoom(String rawStr) {
+        Matcher ctLongMatcher = CT_LONG_Pattern.matcher(rawStr);
+        Matcher ctShortMatcher = CT_SHORT_Pattern.matcher(rawStr);
+        if (ctLongMatcher.find()) {
+            return rawStr.replaceAll("草堂校区-草堂校区\\d{1,2}号楼-", "");
+        }
+        if (ctShortMatcher.find()) {
+            return rawStr.replaceAll("号楼-\\d{1,2}-", "-").substring(5);
+        }
+        return rawStr;
     }
 }

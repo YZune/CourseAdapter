@@ -56,14 +56,14 @@ public class XAUATParser extends Parser {
             Course iCourse = courseList.get(i);
             for (int j = 0; j < i; j++) {
                 Course jCourse = courseList.get(j);
-                // 检查是不是同一门课
-                if (!iCourse.getName().equals(jCourse.getName())) {
-                    continue;
-                }
-                // 检查是不是同一天，同样周范围的课
-                if (iCourse.getStartWeek() != jCourse.getStartWeek()
+                // 检查是不是同一门课，各信息是否一致
+                if (!iCourse.getName().equals(jCourse.getName())
+                        || iCourse.getStartWeek() != jCourse.getStartWeek()
                         || iCourse.getEndWeek() != jCourse.getEndWeek()
-                        || iCourse.getDay() != jCourse.getDay()) {
+                        || iCourse.getType() != jCourse.getType()
+                        || iCourse.getDay() != jCourse.getDay()
+                        || !iCourse.getTeacher().equals(jCourse.getTeacher())
+                        || !iCourse.getRoom().equals(jCourse.getRoom())) {
                     continue;
                 }
                 if (iCourse.getEndNode() + 1 == jCourse.getStartNode()) {

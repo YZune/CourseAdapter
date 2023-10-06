@@ -12,5 +12,10 @@ public class XAUATTest {
         XAUATParser xauatParser = new XAUATParser(
                 Files.readString(Path.of("C:\\Users\\akhzz\\Desktop\\研究生教育综合管理系统(学生服务).htm")));
         xauatParser.saveCourse(true);
+        System.out.println(xauatParser.generateTimeTable());
+        System.out.println(xauatParser.getMaxWeek());
+        System.out.println(xauatParser.getStartDate());
+        System.out.println(xauatParser.getTableName());
+        System.out.println(xauatParser.getNodes());
     }
 }

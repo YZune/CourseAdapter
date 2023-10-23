@@ -1,3 +1,4 @@
 # Project exclude paths
 /out/
 /src/test/RegexTest.kt
+.DS_Store

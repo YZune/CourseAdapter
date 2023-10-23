@@ -45,6 +45,8 @@ abstract class Parser(val source: String) {
                     id = id, room = course.room,
                     teacher = course.teacher, day = course.day,
                     step = course.endNode - course.startNode + 1,
+                    // #兼容早期 startTime缺省为空字符串
+                    startTime = course.startTime, endTime = course.endTime,
                     startWeek = course.startWeek, endWeek = course.endWeek,
                     type = course.type, startNode = course.startNode,
                     credit = course.credit,
@@ -64,7 +66,8 @@ abstract class Parser(val source: String) {
             _detailList.forEach {
                 println(it)
             }
-            Generator(_baseList,_detailList)
+            // #兼容早期 parser is nullable
+            Generator(_baseList,_detailList, parser = this)
         }
         return _baseList.size
     }

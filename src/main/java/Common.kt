@@ -1,6 +1,7 @@
 import bean.Course
 import bean.CourseBaseBean
 import bean.WeekBean
+import java.lang.Math.abs
 import java.security.MessageDigest
 
 object Common {
@@ -401,4 +402,49 @@ object Common {
         return getNodeInt(day.replace("星期",""))
     }
 
+    /*时间及其比较、距离*/
+    class TimeHM(str: String) {
+        var hour: Int = 0
+        var minute: Int = 0
+        init {
+            val arr = str.split(":")
+            hour = arr[0].toInt()
+            minute = arr[1].toInt()
+        }
+
+        operator fun compareTo(other: TimeHM): Int {
+            if (this.hour == other.hour) {
+                if (this.minute == other.minute) return 0
+                if (this.minute > other.minute) return 1
+                return -1
+            }
+            if (this.hour > other.hour) return 1
+            return 0
+        }
+        operator fun plus(m: Int): TimeHM {
+            var r = this
+            r.minute += m; r.hour += r.minute / 60; r.minute %= 60;
+            if (r.minute < 0) { r.minute += 60; r.hour -= 1; }
+            return r
+        }
+        operator fun minus(m: Int): TimeHM = this + (-m)
+
+        fun duration(other: TimeHM): Int {
+            val h: Int = this.hour - other.hour
+            val m: Int = this.minute - other.minute
+            return abs(60*h+m)
+        }
+        fun duration(other: String): Int {
+            val o = TimeHM(other)
+            return duration(o)
+        }
+        fun timeCmp(other: String): Int {
+            val o = TimeHM(other)
+            return compareTo(o)
+        }
+        override fun toString(): String {
+            fun nToString(i: Int): String = "${if (i<0) "-" else ""}${if (abs(i)<10) "0" else ""}${abs(i)}"
+            return "${nToString(hour)}:${nToString(minute)}"
+        }
+    }
 }

@@ -1,5 +1,6 @@
 package main.java.parser
 
+import Common.TimeHM
 import bean.Course
 import main.java.bean.TimeDetail
 import main.java.bean.TimeTable
@@ -12,7 +13,7 @@ import parser.Parser
     URL: https://www.teach.ustc.edu.cn/calendar/16868.html
 
 初代适配者第一次写Java程序，效率、corner case适配等问题在所难免，敬请后来者积极改进.
-编写了FindNode，因为有的课程安排跟时间表并不对齐. 如果WakeUp课程表开发者允许
+编写了FindNode，因为有的课程安排跟时间表并不对齐. 如果开源版parser允许
 startNode, startTime 二选一，烦请随之简化对应代码.
 
 中国科学技术大学新研究生系统，在左侧 培养-课表查询应用-学生课表查询 中看课表.
@@ -26,52 +27,35 @@ P***5	***理	2~3,6~10;6	***	G***8: 5(18:40~21:55);G***8: *(18:40~21:55)
 
 
 class USTCGraduateParser(source: String) : Parser(source) {
-    override fun getNodes(): Int = 13
+    override fun getNodes(): Int = generateTimeTable().timeList.size
 
     override fun getTableName(): String = "中国科学技术大学研究生"
 
     override fun generateTimeTable(): TimeTable {
-        return TimeTable(
-            name = "中国科学技术大学研究生", timeList = listOf(
-                TimeDetail(1, "07:50", "08:35"),
-                TimeDetail(2, "08:40", "09:25"),
-                TimeDetail(3, "09:45", "10:30"),
-                TimeDetail(4, "10:35", "11:20"),
-                TimeDetail(5, "11:25", "12:10"),
-                TimeDetail(6, "14:00", "14:45"),
-                TimeDetail(7, "14:50", "15:35"),
-                TimeDetail(8, "15:55", "16:40"),
-                TimeDetail(9, "16:45", "17:30"),
-                TimeDetail(10, "17:35", "18:20"),
-                // 部分课程并不严格对齐“上课时间表”，此时教务系统给出具体时间
-                TimeDetail(11, "19:30", "20:15"),
-                TimeDetail(12, "20:20", "21:05"),
-                TimeDetail(13, "21:10", "21:55")
-            )
-        )
+        val ttbName = "中国科学技术大学研究生"
+        val ttbList = arrayListOf<TimeDetail>()
+        var seq = 0
+        listOf("7:50","8:40","9:45","10:35","11:25",
+            "14:00","14:50","15:55","16:45","17:35",
+            "19:30","20:20","21:10").forEach {
+                var h = TimeHM(it)
+                ttbList.add(TimeDetail(node = ++seq, startTime = h.toString(),
+                    endTime = (h+45).toString()))
+        }
+        return TimeTable(name = ttbName, timeList = ttbList.toList())
     }
 
     override fun generateCourseList(): List<Course> {
         val timeList = generateTimeTable().timeList.map { listOf(it.startTime, it.endTime) }.toList()
         var retList = arrayListOf<Int>()
 
-        fun FindNode(t1: String, t2: String): List<Int> {
-            fun TimeCmp(t1: String, t2: String): Int {
-                var t_list = arrayListOf<Int>()
-                t_list.addAll(t1.split(":").map { it.toInt() }.toList())
-                t_list.addAll(t2.split(":").map { it.toInt() }.toList())
-                if (t_list[0] > t_list[2]) return 1
-                else if (t_list[0] == t_list[2]) {
-                    if (t_list[1] > t_list[3]) return 1
-                    else if (t_list[1] == t_list[3]) return 0
-                    else return -1
-                } else return -1
-            }
-
+        fun FindNode(_t1: String, _t2: String): List<Int> {
+            val t1 = TimeHM(_t1)
+            val t2 = TimeHM(_t2)
             var retList = arrayListOf<Int>()
             for (i in timeList.indices) {
-                if (retList.isEmpty() && TimeCmp(t1, timeList[i][1]) < 0) retList.add(i + 1)
-                else if (TimeCmp(t2, timeList[i][0]) < 0) retList.add(i)
+                if (retList.isEmpty() && t1.timeCmp(timeList[i][1]) < 0) retList.add(i + 1)
+                else if (t2.timeCmp(timeList[i][0]) < 0) retList.add(i)
             }
             val i = timeList.lastIndex + 1
             while (retList.lastIndex <= 2) retList.add(i)
@@ -90,13 +74,17 @@ class USTCGraduateParser(source: String) : Parser(source) {
         // table没有表头，第一行就是课程
         for (tr in trs) {
             val tds = tr.getElementsByTag("td")
+            if (tds.lastIndex<8) {
+                System.err.println("W: 下列行 单元格数不足 (${tds.size}/9)，若对应了请报告bug\n${tr.outerHtml()}\n")
+                continue
+            }
             // 1,5,6,7,8
             // 课堂号,课堂名称,起止周,教师,上课时间地点
             val _tds = tds.map<Element, String> {
                 try {
                     it.select("span").first().text()
                 } catch (e: java.lang.NullPointerException) {
-                    ""
+                    it.html()
                 }
             }
             val className = _tds[5]
@@ -118,7 +106,9 @@ class USTCGraduateParser(source: String) : Parser(source) {
                     startNode = items[2].toInt()
                     endNode = items[items.lastIndex - 1].toInt()
                 } catch (e: java.lang.NumberFormatException) {
-                    val time0 = items[2].split("~")
+                    // 上课时间与上课铃不对齐
+                    val time0 = items[2].split("~").toTypedArray<String>()
+                    time0.forEachIndexed { ind, it -> time0[ind] = TimeHM(it).toString() }
                     startTime = time0[0]
                     endTime = time0[1]
                     // 寻找最合适的 node
@@ -142,17 +132,12 @@ class USTCGraduateParser(source: String) : Parser(source) {
                         weeksArr.add(startWeek)
                         weeksArr.add(endWeek)
                     } catch (e: java.lang.NumberFormatException) {
+                        // 区分单双周
                         val weeks2 = weeks1[j].split("(")
                         endWeek = weeks2[0].toInt()
                         val isSingle = weeks2[1].startsWith("单")
-                        if ((startWeek and 1) != (if (isSingle) {
-                                1
-                            } else {
-                                2
-                            })
-                        ) {
+                        if ((startWeek and 1) != (if (isSingle) 1 else 0))
                             startWeek += 1
-                        }
                         for (i in startWeek..endWeek step 2) {
                             weeksArr.add(i)
                             weeksArr.add(i)

@@ -161,6 +161,10 @@ class NWPUGraduateParser(source: String) : Parser(source) {
              * 长安-教学西楼D座-D101(第3-12周 连续周 星期五晚1,晚2,晚3<19:00-21:25>)
              * 长安-教学西楼D座-D101(第13-13周 单周 星期五晚1,晚2<19:00-20:40>)
              */
+            /**
+             * 学校改了时间的显示，如下：
+             * 长安-教学西楼A座-A101(第2-4周 连续周 星期一11、12、13<19:00-21:25> 星期三11、12、13<19:00-21:25>)
+             */
             for (line in detailedTimeText.split('\n')) {
                 val lineTrimmed = line.trim()
 
@@ -188,22 +192,34 @@ class NWPUGraduateParser(source: String) : Parser(source) {
                     0
                 }
                 // 考虑多 “星期”
-                val dayNodeRegex = """星期.+?(?=星期|${'$'})""".toRegex()
+                val dayNodeRegex = """星期.+?(?=<|星期|${'$'})""".toRegex()// 星期.+?(?=<|星期|$)
                 val dayNodeFound = dayNodeRegex.findAll(timeText)
                 dayNodeFound.forEach {
                     val dayNodeText = it.value.trim() // 例如 星期六 上1,上2,上3,上4,下1,下2,下3,下4,晚1,晚2,晚3
                     val courseDay = Common.otherHeader.indexOf(dayNodeText.substring(0,3))
                     val nodePrefixToNode = mapOf("上" to 0, "中" to 4, "下" to 6, "晚" to 10)
-                    val nodeTextRegex = """[上中下晚]\d+""".toRegex()
+                    val nodeTextRegex = """[上中下晚]?\d+""".toRegex()
                     val nodeTextFound = nodeTextRegex.findAll(dayNodeText)
 
                     val nodesList = mutableListOf<Int>()
                     nodeTextFound.forEach {itt ->
                         val nodeText = itt.value.trim()
-                        val curNode = nodePrefixToNode[nodeText.substring(0, 1)]!!.toInt() + (nodeText.substring(1).toInt())
+                        var curNode = 1
+                        if (nodeText.length>1 && nodePrefixToNode[nodeText.substring(0, 1)] != null) {
+                            // 为上1,上2,上3,上4,下1,下2,下3,下4,晚1,晚2,晚3
+                            curNode = nodePrefixToNode[nodeText.substring(0, 1)]!!.toInt() + (nodeText.substring(1).toInt())
+                        } else if (nodeText[0] in '0'..'9') {
+                            //为 11、12、13
+                            curNode = nodeText.toInt()
+                        } else {
+                            throw Exception("课程节数识别失败")
+                        }
                         nodesList.add(curNode)
                     }
                     // 原则上，课的Node应该是连续的。但是为了以防万一，还是做了不连续的话就截断，添加多个同名课程的处理
+                    if (nodesList.count() <= 0) {
+                        throw Exception("课程节数识别失败")
+                    }
                     nodesList.sort()
                     var startNode = -1
                     var endNode = -1

@@ -3,6 +3,7 @@ package main.java.parser
 import bean.Course
 import main.java.bean.TimeDetail
 import main.java.bean.TimeTable
+import org.jsoup.Jsoup
 import parser.Parser
 
 /**
@@ -12,11 +13,21 @@ import parser.Parser
  * 作者: PandZz
  *
  * 北京航空航天大学-新本研教务
- * 目前仅适配了本科生课表且无单双周(作者本学期没发现单双周的课且不太清楚研究生课表有什么不同, 若有问题欢迎对作者提issue)
+ * 目前仅适配了本科生课表(作者不太清楚研究生课表有什么不同, 若有问题欢迎对作者提issue)
  * 进入课表的方法: 进入byxk.buaa.edu.cn, 登录后点击悬浮按钮->课表
  */
 
 class BUAAParser(source: String) : Parser(source) {
+    // 由于不清楚函数间的调用关系, 为了保险起见, 该函数中总是重新parse了一遍source
+    override fun getTableName(): String {
+        val semester = Jsoup.parse(source).getElementsByClass("cv-caption-text")[0].text()
+        return "北京航空航天大学-$semester"
+    }
+
+    override fun getNodes(): Int {
+        return 14
+    }
+
     override fun generateTimeTable(): TimeTable {
         return TimeTable(
             name = "北京航空航天大学", timeList = listOf(
@@ -42,26 +53,35 @@ class BUAAParser(source: String) : Parser(source) {
 
     override fun generateCourseList(): List<Course> {
         val result = arrayListOf<Course>()
-        val doc = org.jsoup.Jsoup.parse(source)
+        val doc = Jsoup.parse(source)
         val curriculumTable = doc.getElementsByClass("curriculum-table")
-        curriculumTable[0].getElementsByTag("tr").forEach {
+        curriculumTable[0].getElementsByTag("tr").forEach { tr ->
             // 该html元素是课程表的格子, 可为空也可有一或多个课程信息
-            val itemTds = it.getElementsByClass("itemTd")
+            val itemTds = tr.getElementsByClass("itemTd")
             // 用0-6表示周一到周日, 注意最终结果中的day参数是1-7
             var dayIdx = -1
 
             for (itemTd in itemTds) {
                 dayIdx = (dayIdx + 1) % 7
-                itemTd.getElementsByClass("sjp-item").forEach {
-                    val children = it.children()
+                itemTd.getElementsByClass("sjp-item").forEach { courseItem ->
+                    val children = courseItem.children()
 
-                    val tempName = children[0].children().get(0).text()
+                    val tempName = children[0].children()[0].text()
                     val name = tempName.substring(0, tempName.indexOf("-")).trim()
 
-                    val time = children[1].text().split(" ") // 13-16周 3-4节
-                    val week = time[0].substringBeforeLast("周").split("-")
+                    val time = children[1].text().split(" ") // 13-16周(单/双) 3-4节
+
+                    val weekRaw = time[0]
+                    var type = 0
+                    if (weekRaw.endsWith("单)")) {
+                        type = 1
+                    } else if (weekRaw.endsWith("双)")) {
+                        type = 2
+                    }
+                    val week = weekRaw.substringBeforeLast("周").split("-")
                     val startWeek = week[0].toInt()
                     val endWeek = week[1].toInt()
+
                     val node = time[1].substringBeforeLast("节").split("-")
                     val startNode = node[0].toInt()
                     val endNode = node[1].toInt()
@@ -80,7 +100,7 @@ class BUAAParser(source: String) : Parser(source) {
                             endNode = endNode,
                             startWeek = startWeek,
                             endWeek = endWeek,
-                            type = 0
+                            type = type
                         )
                     )
                 }

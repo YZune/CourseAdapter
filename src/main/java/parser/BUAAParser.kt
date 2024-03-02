@@ -1,29 +1,23 @@
 package main.java.parser
 
 import bean.Course
+import com.google.gson.Gson
+import main.java.bean.BUAACourseInfo
 import main.java.bean.TimeDetail
 import main.java.bean.TimeTable
-import org.jsoup.Jsoup
 import parser.Parser
 
 /**
- * Date: 2024/03/01
- * 课表地址: https://byxk.buaa.edu.cn/xsxk/web/curriculum
+ * Date: 2024/03/02
+ * 课表地址: https://byxt.buaa.edu.cn/ -> 查询 -> 课表查询 -> 我的课表
  * 项目地址: https://github.com/PandZz/CourseAdapter
  * 作者: PandZz
  *
  * 北京航空航天大学-新本研教务
- * 目前仅适配了本科生课表(作者不太清楚研究生课表有什么不同, 若有问题欢迎对作者提issue)
- * 进入课表的方法: 进入byxk.buaa.edu.cn, 登录后点击悬浮按钮->课表
+ * 解析了POST(https://byxt.buaa.edu.cn/jwapp/sys/homeapp/api/home/student/getMyScheduleDetail.do)的返回结果(json)
  */
 
 class BUAAParser(source: String) : Parser(source) {
-    // 由于不清楚函数间的调用关系, 为了保险起见, 该函数中总是重新parse了一遍source
-    override fun getTableName(): String {
-        val semester = Jsoup.parse(source).getElementsByClass("cv-caption-text")[0].text()
-        return "北京航空航天大学-$semester"
-    }
-
     override fun getNodes(): Int {
         return 14
     }
@@ -53,58 +47,68 @@ class BUAAParser(source: String) : Parser(source) {
 
     override fun generateCourseList(): List<Course> {
         val result = arrayListOf<Course>()
-        val doc = Jsoup.parse(source)
-        val curriculumTable = doc.getElementsByClass("curriculum-table")
-        curriculumTable[0].getElementsByTag("tr").forEach { tr ->
-            // 该html元素是课程表的格子, 可为空也可有一或多个课程信息
-            val itemTds = tr.getElementsByClass("itemTd")
-            // 用0-6表示周一到周日, 注意最终结果中的day参数是1-7
-            var dayIdx = -1
-
-            for (itemTd in itemTds) {
-                dayIdx = (dayIdx + 1) % 7
-                itemTd.getElementsByClass("sjp-item").forEach { courseItem ->
-                    val children = courseItem.children()
-
-                    val tempName = children[0].children()[0].text()
-                    val name = tempName.substring(0, tempName.indexOf("-")).trim()
-
-                    val time = children[1].text().split(" ") // 13-16周(单/双) 3-4节
-
-                    val weekRaw = time[0]
-                    var type = 0
-                    if (weekRaw.endsWith("单)")) {
-                        type = 1
-                    } else if (weekRaw.endsWith("双)")) {
-                        type = 2
-                    }
-                    val week = weekRaw.substringBeforeLast("周").split("-")
-                    val startWeek = week[0].toInt()
-                    val endWeek = week[1].toInt()
-
-                    val node = time[1].substringBeforeLast("节").split("-")
-                    val startNode = node[0].toInt()
-                    val endNode = node[1].toInt()
-
-                    val room = children[2].text()
-
-                    val teacher = children[3].text()
-
-                    result.add(
-                        Course(
-                            name = name,
-                            day = dayIdx + 1,
-                            room = room,
-                            teacher = teacher,
-                            startNode = startNode,
-                            endNode = endNode,
-                            startWeek = startWeek,
-                            endWeek = endWeek,
-                            type = type
-                        )
-                    )
-                }
+        val response = Gson().fromJson(source, BUAACourseInfo::class.java)
+        response.datas.arrangedList.forEach { courseItem ->
+            parseCourseItem(courseItem).forEach {
+                result.add(it)
             }
+        }
+        return result
+    }
+
+    class TeacherAndWeek(
+        val teacher: String,
+        val beginWeek: Int,
+        val endWeek: Int,
+        val type: Int // 0: 每周, 1: 单周, 2: 双周
+    )
+
+    // 解析教师和周数, 例如: "张三[1-16周(单)]" -> TeacherAndWeek("张三", 1, 16, 1)
+    private fun parseTeacherAndWeek(teachersAndWeeks: String): TeacherAndWeek {
+        val teacher = teachersAndWeeks.substringBeforeLast("[")
+        var weeks = teachersAndWeeks.substringAfterLast("[").substringBeforeLast("]")
+        var type = 0
+        if (weeks.contains("单")) {
+            type = 1
+        } else if (weeks.contains("双")) {
+            type = 2
+        }
+        // 去掉可能有的(单/双)字样
+        weeks = weeks.substringBefore("(")
+        val weeksRaw = weeks.substringBeforeLast("周").split("-")
+        val beginWeek = weeksRaw[0].toInt()
+        val endWeek = weeksRaw[1].toInt()
+        return TeacherAndWeek(teacher, beginWeek, endWeek, type)
+    }
+
+    private fun parseCourseItem(courseItem: BUAACourseInfo.Datas.CourseItem): List<Course> {
+        val result = arrayListOf<Course>()
+        val cellDetail = courseItem.cellDetail
+        val name = courseItem.courseName
+        val day = courseItem.dayOfWeek
+        val room = courseItem.placeName
+        cellDetail[1].text.split(" ").forEach { teacherAndWeeks ->
+            val teacherAndWeek = parseTeacherAndWeek(teacherAndWeeks)
+            val teacher = teacherAndWeek.teacher
+            val beginWeek = teacherAndWeek.beginWeek
+            val endWeek = teacherAndWeek.endWeek
+            val type = teacherAndWeek.type
+            val course = Course(
+                name = name,
+                day = day,
+                room = room,
+                teacher = teacher,
+                startNode = courseItem.beginSection,
+                endNode = courseItem.endSection,
+                startWeek = beginWeek,
+                endWeek = endWeek,
+                type = type,
+                credit = courseItem.credit.toFloat(),
+                note = courseItem.titleDetail[8],
+                startTime = courseItem.beginTime,
+                endTime = courseItem.endTime
+            )
+            result.add(course)
         }
         return result
     }

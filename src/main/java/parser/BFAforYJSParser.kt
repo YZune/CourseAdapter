@@ -62,9 +62,17 @@ class BFAforYJSParser(source: String) : Parser(source) {
             for (tdElement in tdElements) {
                 // 处理课程表的每个格子元素
                 val courseText = tdElement.text()
-                if (!courseText.isNullOrEmpty()) {
+                if (courseText.isNotEmpty()) {
                     // 有课程信息
-                    val textList = courseText.split(" ")
+                    val textList = mutableListOf<String>()
+                    val textListElements = tdElement.child(0).children()
+                    //  单独提取每一行的课程信息
+                    for (textListElement in textListElements)
+                    {
+                        textList.add(textListElement.text())
+                    }
+                    textList.add(tdElement.child(1).text())
+                    //  存入课程信息
                     val weekday = tdElements.indexOf(tdElement) + 1
                     val campus = textList[0]
                     val courseName = textList[1]

@@ -18,6 +18,7 @@ import parser.Parser
  */
 
 class BUAAParser(source: String) : Parser(source) {
+    private val teacherAndWeekRegex = Regex("""^(.+)\[(\d+)-(\d+)周(?:\(([单双])\))?]$""")
     override fun getNodes(): Int {
         return 14
     }
@@ -56,7 +57,7 @@ class BUAAParser(source: String) : Parser(source) {
         return result
     }
 
-    class TeacherAndWeek(
+    data class TeacherAndWeek(
         val teacher: String,
         val beginWeek: Int,
         val endWeek: Int,
@@ -65,20 +66,22 @@ class BUAAParser(source: String) : Parser(source) {
 
     // 解析教师和周数, 例如: "张三[1-16周(单)]" -> TeacherAndWeek("张三", 1, 16, 1)
     private fun parseTeacherAndWeek(teachersAndWeeks: String): TeacherAndWeek {
-        val teacher = teachersAndWeeks.substringBeforeLast("[")
-        var weeks = teachersAndWeeks.substringAfterLast("[").substringBeforeLast("]")
-        var type = 0
-        if (weeks.contains("单")) {
-            type = 1
-        } else if (weeks.contains("双")) {
-            type = 2
+        val matchResult = teacherAndWeekRegex.find(teachersAndWeeks)
+        if (matchResult != null) {
+            val (teacher, beginWeekStr, endWeekStr, typeStr) = matchResult.destructured
+            val beginWeek = beginWeekStr.toInt()
+            val endWeek = endWeekStr.toInt()
+            val type = when (typeStr) {
+                "单" -> 1
+                "双" -> 2
+                else -> 0
+            }
+
+            val teacherAndWeek = TeacherAndWeek(teacher, beginWeek, endWeek, type)
+//            println(teacherAndWeek)
+            return teacherAndWeek
         }
-        // 去掉可能有的(单/双)字样
-        weeks = weeks.substringBefore("(")
-        val weeksRaw = weeks.substringBeforeLast("周").split("-")
-        val beginWeek = weeksRaw[0].toInt()
-        val endWeek = weeksRaw[1].toInt()
-        return TeacherAndWeek(teacher, beginWeek, endWeek, type)
+        return TeacherAndWeek("", 0, 0, 0)
     }
 
     private fun parseCourseItem(courseItem: BUAACourseInfo.Datas.CourseItem): List<Course> {

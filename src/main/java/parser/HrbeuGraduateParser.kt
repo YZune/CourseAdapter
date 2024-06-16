@@ -10,6 +10,7 @@ import parser.Parser
  */
 class HrbeuGraduateParser(source: String) : Parser(source) {
     private val brTrimRegex = Regex("(^<br>)|(<br>$)")
+    private val numNodeRegex = Regex("\\d+")
     private val numRangeRegex = Regex("(\\d+)(-(\\d+))?")
     private val teachRegex = Regex("[(（](.*)[)）]")
     private val gradeRegex = Regex("([\\d]+班)")
@@ -21,10 +22,10 @@ class HrbeuGraduateParser(source: String) : Parser(source) {
         val courseList = ArrayList<Course>()
         for (tr in trs) {
             val tds = tr.getElementsByTag("td")
-            var countDay = 1
+            var countDay = 0
             for (i in 1 until tds.size) {
-                val courseSource = tds[i].html().replace(brTrimRegex, "")
-                if (courseSource.length <= 1) {
+                val courseSource = tds[i].html().replace(brTrimRegex, "").trim()
+                if (courseSource.isEmpty()) {
                     countDay++
                     continue
                 }
@@ -56,9 +57,9 @@ class HrbeuGraduateParser(source: String) : Parser(source) {
             splitEnd[0] += "(" + grade.groupValues[1] + ")";
         }
 
-        val numMacher = numRangeRegex.find(splitEnd[2])
-        val startNode: Int = numMacher!!.groupValues[1].toInt()
-        val endNode: Int = numMacher.groupValues[3].toInt()
+        val numMacher = numNodeRegex.findAll(splitEnd[2])
+        val startNode: Int = numMacher.first().groupValues[0].toInt()
+        val endNode: Int = numMacher.last().groupValues[0].toInt()
         if ("一班多师" in splitEnd[1]) {
             for (item in splitEnd[3].split(";")) {
                 numRangeRegex.findAll(item).forEach {
@@ -69,40 +70,40 @@ class HrbeuGraduateParser(source: String) : Parser(source) {
                     val teacher = teachRegex.find(item)!!.groupValues[1]
                     resCourseList.add(
                         Course(
-                            splitEnd[0],
+                            splitEnd[0].trim(),
                             countDay,
-                            splitEnd[4],
-                            teacher,
+                            splitEnd[4].trim(),
+                            teacher.trim(),
                             startNode,
                             endNode,
                             startWeek.toInt(),
                             endWeek.toInt(),
                             0,
                             0f,
-                            split.subList(5, split.size).joinToString()
+                            split.subList(5, split.size).joinToString().trim()
                         )
                     )
                 }
             }
         } else {
-            val teacher = splitEnd[1].substringBeforeLast("(").trim()
+            val teacher = splitEnd[1].substringBeforeLast(" ").trim()
             numRangeRegex.findAll(splitEnd[3]).forEach {
                 val values = it.groupValues
                 val startWeek: String = values[1].trim()
                 val endWeek: String = if (values[3].trim() == "") values[1] else values[3].trim()
                 resCourseList.add(
                     Course(
-                        splitEnd[0],
+                        splitEnd[0].trim(),
                         countDay,
-                        splitEnd[4],
-                        teacher,
+                        splitEnd[4].trim(),
+                        teacher.trim(),
                         startNode,
                         endNode,
                         startWeek.toInt(),
                         endWeek.toInt(),
                         0,
                         0f,
-                        split.subList(5, split.size).joinToString()
+                        split.subList(5, split.size).joinToString().trim()
                     )
                 )
             }

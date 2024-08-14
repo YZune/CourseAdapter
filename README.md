@@ -16,7 +16,7 @@
 
 2. `Common` 中抽取了一些可能通用的解析函数，当然你也可以补充。
 
-3. 重写好函数后，新建一个测试的kt文件，如示例中的 `ZhengFangTest.kt`，你运行一下就懂了。
+3. 重写好函数后，修改 `course_adapter/src/jvmTest/kotlin/Test.kt`，将解析类替换成你自己写的类，修改传入的文件路径参数，右键后选择运行，检查输出是否符合预期。
 
 4. commit 进行 [Pull Request](http://www.ruanyifeng.com/blog/2017/07/pull_request.html)
 

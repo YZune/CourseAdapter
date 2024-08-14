@@ -5,7 +5,7 @@ import bean.TimeDetail
 import bean.TimeTable
 import com.fleeksoft.ksoup.Ksoup
 import com.fleeksoft.ksoup.network.parseGetRequest
-import bean.THUSemesterData
+import kotlinx.serialization.Serializable
 import utils.Common
 import utils.jsonUtil
 
@@ -53,12 +53,12 @@ class THUParser(source: String) : Parser(source) {
 
     override suspend fun generateCourseList(): MutableList<Course> {
         semesterRegex.find(source)?.run {
-            val json = try {
+            val data = try {
                 Ksoup.parseGetRequest(semesterDataUrl(groupValues[1])).body().text()
+                    .let { jsonUtil.decodeFromString<SemesterData>(it) }
             } catch (e: Exception) {
                 return@run
             }
-            val data = jsonUtil.decodeFromString<THUSemesterData>(json)
             data.weekCount?.let { weekCount = it }
             data.parsedReschedule?.let { reschedule = it }
         }
@@ -66,7 +66,7 @@ class THUParser(source: String) : Parser(source) {
         return parseCourses()
     }
 
-    val mainScriptRegex = Regex("""setInitValue\(\)[\n\s\S]+setInitValue""", RegexOption.MULTILINE)
+    val mainScriptRegex = Regex("""setInitValue\(\)[\s\S]+setInitValue""")
     val cellPositionRegex = Regex("""a(\d)_(\d)""")
     val blueTextRegex = Regex("""<font color='blue'>([^<>]+?)</font>""")
     val courseNumberRegex = Regex("""\d{10};(\d{8})""")  // teacher ID; course number
@@ -187,8 +187,8 @@ class THUParser(source: String) : Parser(source) {
         return courseList
     }
 
-    val secondaryCourseTableHeaderRegex = Regex("""var gridColumns = \[([\n\s\S]+?)\];""", RegexOption.MULTILINE)
-    val secondaryCourseTableDataRegex = Regex("""var gridData = \[([\n\s\S]+?)\];""", RegexOption.MULTILINE)
+    val secondaryCourseTableHeaderRegex = Regex("""var gridColumns = \[([\s\S]+?)\];""")
+    val secondaryCourseTableDataRegex = Regex("""var gridData = \[([\s\S]+?)\];""")
     val bracketsRegex = Regex("""\[([^\[\]]+)]""")
 
     fun parseSecondaryCourseTable() {
@@ -261,6 +261,20 @@ class THUParser(source: String) : Parser(source) {
         var time: String = "",
         val params: MutableList<String> = mutableListOf()
     )
+
+    @Serializable
+    class SemesterData(
+        val weekCount: Int?,
+        private val reschedule: Array<Array<Int>>?,
+    ) {
+        val parsedReschedule: Array<Reschedule>?
+            get() = reschedule?.run { Array(size) { i -> this[i].toReschedule() } }
+
+        private fun Array<Int>.toReschedule() = when (size) {
+            2 -> Reschedule(this[0], this[1])
+            else -> Reschedule(this[0], this[1], this[2], this[3])
+        }
+    }
 
     fun String.formatTime(): String {
         val time = replace('：', ':').trim()

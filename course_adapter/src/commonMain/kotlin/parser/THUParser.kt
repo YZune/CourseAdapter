@@ -5,7 +5,7 @@ import bean.TimeDetail
 import bean.TimeTable
 import com.fleeksoft.ksoup.Ksoup
 import com.fleeksoft.ksoup.network.parseGetRequest
-import com.suda.yzune.wakeupschedule.schedule_parser.bean.THUSemesterData
+import bean.THUSemesterData
 import utils.Common
 import utils.jsonUtil
 

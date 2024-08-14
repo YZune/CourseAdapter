@@ -1,4 +1,4 @@
-package com.suda.yzune.wakeupschedule.schedule_parser.bean
+package bean
 
 import kotlinx.serialization.Serializable
 import parser.THUParser

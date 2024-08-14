@@ -54,7 +54,7 @@ class THUParser(source: String) : Parser(source) {
     override suspend fun generateCourseList(): MutableList<Course> {
         semesterRegex.find(source)?.run {
             val json = try {
-                Ksoup.parseGetRequest(semesterDataUrl(groupValues[1])).html()
+                Ksoup.parseGetRequest(semesterDataUrl(groupValues[1])).body().text()
             } catch (e: Exception) {
                 return@run
             }
@@ -66,7 +66,7 @@ class THUParser(source: String) : Parser(source) {
         return parseCourses()
     }
 
-    val mainScriptRegex = Regex("""setInitValue\(\).+setInitValue""", RegexOption.MULTILINE)
+    val mainScriptRegex = Regex("""setInitValue\(\)[\n\s\S]+setInitValue""", RegexOption.MULTILINE)
     val cellPositionRegex = Regex("""a(\d)_(\d)""")
     val blueTextRegex = Regex("""<font color='blue'>([^<>]+?)</font>""")
     val courseNumberRegex = Regex("""\d{10};(\d{8})""")  // teacher ID; course number
@@ -187,8 +187,8 @@ class THUParser(source: String) : Parser(source) {
         return courseList
     }
 
-    val secondaryCourseTableHeaderRegex = Regex("""var gridColumns = \[(.+)];""", RegexOption.MULTILINE)
-    val secondaryCourseTableDataRegex = Regex("""var gridData = \[(.+)];""", RegexOption.MULTILINE)
+    val secondaryCourseTableHeaderRegex = Regex("""var gridColumns = \[([\n\s\S]+?)\];""", RegexOption.MULTILINE)
+    val secondaryCourseTableDataRegex = Regex("""var gridData = \[([\n\s\S]+?)\];""", RegexOption.MULTILINE)
     val bracketsRegex = Regex("""\[([^\[\]]+)]""")
 
     fun parseSecondaryCourseTable() {

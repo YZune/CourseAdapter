@@ -3,3 +3,12 @@
 /src/test/RegexTest.kt
 .DS_Store
 /production
+*.iml
+.gradle
+.idea
+build
+captures
+.externalNativeBuild
+.cxx
+local.properties
+xcuserdata

@@ -6,7 +6,7 @@
 
 2. 简单 Java 基础，Kotlin 入门：字符串处理、类的继承、方法重写
 
-3. Jsoup 入门
+3. Ksoup（KMM版的Jsoup） 入门
 
 ## 食用方法
 

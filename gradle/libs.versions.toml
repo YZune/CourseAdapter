@@ -1,0 +1,97 @@
+[versions]
+agconnect = "1.9.1.300"
+appcompat = "1.7.0"
+balloon = "1.4.4"
+base-recyclerview-adapter-helper = "3.0.14"
+biweekly = "0.6.6"
+cardview = "1.0.0"
+commons-text = "1.9"
+constraintlayout = "2.1.4"
+core-ktx = "1.13.1"
+espresso-core = "3.6.1"
+glide = "4.15.1"
+gradle = "8.5.1"
+gson = "2.10.1"
+hianalytics = "6.10.0.302"
+intelligence-suggestion = "1.0.0.306"
+jsoup = "1.13.1"
+junit = "4.13.2"
+kotlin = "2.0.0"
+kotlin-csv-jvm = "1.2.0"
+kotlinx-coroutines-core = "1.7.3"
+legacy-support-v4 = "1.0.0"
+sticky-headers = "0.4.3"
+lifecycle = "2.8.4"
+material = "1.10.0"
+navigation = "2.7.7"
+number-picker-view = "1.2.0"
+quicksidebar = "1.0.3"
+retrofit = "2.9.0"
+room-runtime = "2.6.1"
+runner = "1.6.1"
+threetenabp = "1.4.4"
+toasty = "1.4.2"
+work-runtime-ktx = "2.9.0"
+ksp = "2.0.0-1.0.24"
+leak-canary = "2.13"
+okio = "3.8.0"
+serialization = "1.6.3"
+ksoup = "0.1.2"
+kotlinx-datetime = "0.6.0-RC.2"
+
+[libraries]
+agconnect-core = { module = "com.huawei.agconnect:agconnect-core", version.ref = "agconnect" }
+agconnect-crash = { module = "com.huawei.agconnect:agconnect-crash", version.ref = "agconnect" }
+appcompat = { module = "androidx.appcompat:appcompat", version.ref = "appcompat" }
+balloon = { module = "com.github.skydoves:balloon", version.ref = "balloon" }
+baseRecyclerViewAdapterHelper = { module = "io.github.cymchad:BaseRecyclerViewAdapterHelper", version.ref = "base-recyclerview-adapter-helper" }
+biweekly = { module = "net.sf.biweekly:biweekly", version.ref = "biweekly" }
+cardview = { module = "androidx.cardview:cardview", version.ref = "cardview" }
+commons-text = { module = "org.apache.commons:commons-text", version.ref = "commons-text" }
+constraintlayout = { module = "androidx.constraintlayout:constraintlayout", version.ref = "constraintlayout" }
+core-ktx = { module = "androidx.core:core-ktx", version.ref = "core-ktx" }
+espresso-core = { module = "androidx.test.espresso:espresso-core", version.ref = "espresso-core" }
+glide = { module = "com.github.bumptech.glide:glide", version.ref = "glide" }
+gradle = { module = "com.android.tools.build:gradle", version.ref = "gradle" }
+gson = { module = "com.google.code.gson:gson", version.ref = "gson" }
+hianalytics = { module = "com.huawei.hms:hianalytics", version.ref = "hianalytics" }
+intelligence-suggestion = { module = "com.hihonor.mcs:intelligence-suggestion", version.ref = "intelligence-suggestion" }
+jsoup = { module = "org.jsoup:jsoup", version.ref = "jsoup" }
+junit = { module = "junit:junit", version.ref = "junit" }
+kotlin-csv-jvm = { module = "com.github.doyaaaaaken:kotlin-csv-jvm", version.ref = "kotlin-csv-jvm" }
+kotlin-gradlePlugin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }
+agconnect-gradlePlugin = { module = "com.huawei.agconnect:agcp", version.ref = "agconnect" }
+kotlin-stdlib = { module = "org.jetbrains.kotlin:kotlin-stdlib", version.ref = "kotlin" }
+kotlinx-coroutines-android = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-android", version.ref = "kotlinx-coroutines-core" }
+kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlinx-coroutines-core" }
+glide-ksp = { module = "com.github.bumptech.glide:ksp", version.ref = "glide" }
+legacy-support-v4 = { module = "androidx.legacy:legacy-support-v4", version.ref = "legacy-support-v4" }
+stickyHeaders = { module = "com.timehop.stickyheadersrecyclerview:library", version.ref = "sticky-headers" }
+lifecycle = { module = "androidx.lifecycle:lifecycle-compiler", version.ref = "lifecycle" }
+material = { module = "com.google.android.material:material", version.ref = "material" }
+navigation-fragment-ktx = { module = "androidx.navigation:navigation-fragment-ktx", version.ref = "navigation" }
+navigation-safeArgs-gradlePlugin = { module = "androidx.navigation:navigation-safe-args-gradle-plugin", version.ref = "navigation" }
+navigation-ui-ktx = { module = "androidx.navigation:navigation-ui-ktx", version.ref = "navigation" }
+numberPickerView = { module = "cn.carbswang.android:NumberPickerView", version.ref = "number-picker-view" }
+quicksidebar = { module = "com.bigkoo:quicksidebar", version.ref = "quicksidebar" }
+retrofit = { module = "com.squareup.retrofit2:retrofit", version.ref = "retrofit" }
+room-compiler = { module = "androidx.room:room-compiler", version.ref = "room-runtime" }
+room-ktx = { module = "androidx.room:room-ktx", version.ref = "room-runtime" }
+room-runtime = { module = "androidx.room:room-runtime", version.ref = "room-runtime" }
+runner = { module = "androidx.test:runner", version.ref = "runner" }
+threetenabp = { module = "com.jakewharton.threetenabp:threetenabp", version.ref = "threetenabp" }
+toasty = { module = "com.github.GrenderG:Toasty", version.ref = "toasty" }
+work-runtime-ktx = { module = "androidx.work:work-runtime-ktx", version.ref = "work-runtime-ktx" }
+leakCanary = { module = "com.squareup.leakcanary:leakcanary-android", version.ref = "leak-canary" }
+okio = { module = "com.squareup.okio:okio", version.ref = "okio" }
+kotlinx-serialization = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "serialization" }
+ksoup = { module = "com.fleeksoft.ksoup:ksoup", version.ref = "ksoup" }
+ksoup-network = { module = "com.fleeksoft.ksoup:ksoup-network", version.ref = "ksoup" }
+kotlinx-datetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version.ref = "kotlinx-datetime" }
+
+[plugins]
+ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
+kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
+kotlin-multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
+kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
+harmony-js = { id = "io.github.XDMrWu.harmony.js", version = "unspecified" }

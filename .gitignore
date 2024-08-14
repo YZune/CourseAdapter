@@ -13,3 +13,4 @@ captures
 local.properties
 xcuserdata
 course_adapter/src/jvmTest/kotlin/Test.kt
+/.kotlin

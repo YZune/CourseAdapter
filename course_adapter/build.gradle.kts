@@ -6,6 +6,7 @@ plugins {
 
 kotlin {
     jvm()
+    js()
 
     sourceSets {
         commonMain.dependencies {
@@ -16,10 +17,12 @@ kotlin {
             implementation(libs.ksoup.network)
         }
 
-//        jvmTest.dependencies {
-//            implementation(libs.gson)
-//            implementation(libs.kotlin.csv.jvm)
-//            implementation(libs.jsoup)
-//        }
+        jvmTest.dependencies {
+            implementation(libs.gson)
+            implementation(libs.kotlin.csv.jvm)
+            implementation(libs.jsoup)
+            implementation(libs.ktor.client.okhttp)
+            implementation(libs.kotlin.test)
+        }
     }
 }

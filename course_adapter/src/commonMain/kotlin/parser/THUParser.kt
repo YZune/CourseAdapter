@@ -62,18 +62,17 @@ class THUParser(source: String) : Parser(source) {
             data.weekCount?.let { weekCount = it }
             data.parsedReschedule?.let { reschedule = it }
         }
-
         parseSecondaryCourseTable()  // generates secondaryCoursesDetails
         return parseCourses()
     }
 
-    val mainScriptRegex = Regex("""setInitValue\(\).+setInitValue""", RegexOption.DOT_MATCHES_ALL)
+    val mainScriptRegex = Regex("""setInitValue\(\).+setInitValue""", RegexOption.MULTILINE)
     val cellPositionRegex = Regex("""a(\d)_(\d)""")
     val blueTextRegex = Regex("""<font color='blue'>([^<>]+?)</font>""")
     val courseNumberRegex = Regex("""\d{10};(\d{8})""")  // teacher ID; course number
 
-    fun parseCourses(): MutableList<Course> {
-        val courseList = mutableListOf<Course>()
+    fun parseCourses(): ArrayList<Course> {
+        val courseList = arrayListOf<Course>()
         val totalWeeks = weekCount
         val script = mainScriptRegex.find(source)!!.value
         var courseInfo = CourseDetails()
@@ -138,7 +137,7 @@ class THUParser(source: String) : Parser(source) {
                     type = -1,
                     credit = when (courseInfo.number) {
                         "" -> 0.0f
-                        else -> courseInfo.number.last().toFloat() - 48 // char to float: ASCII
+                        else -> courseInfo.number.last().code.toFloat() - 48 // char to float: ASCII
                     },
                     note = courseInfo.notes,
                     startTime = when (courseInfo.time) {
@@ -188,8 +187,8 @@ class THUParser(source: String) : Parser(source) {
         return courseList
     }
 
-    val secondaryCourseTableHeaderRegex = Regex("""var gridColumns = \[(.+)];""", RegexOption.DOT_MATCHES_ALL)
-    val secondaryCourseTableDataRegex = Regex("""var gridData = \[(.+)];""", RegexOption.DOT_MATCHES_ALL)
+    val secondaryCourseTableHeaderRegex = Regex("""var gridColumns = \[(.+)];""", RegexOption.MULTILINE)
+    val secondaryCourseTableDataRegex = Regex("""var gridData = \[(.+)];""", RegexOption.MULTILINE)
     val bracketsRegex = Regex("""\[([^\[\]]+)]""")
 
     fun parseSecondaryCourseTable() {
@@ -262,19 +261,6 @@ class THUParser(source: String) : Parser(source) {
         var time: String = "",
         val params: MutableList<String> = mutableListOf()
     )
-
-    class SemesterData(
-        val weekCount: Int?,
-        private val reschedule: Array<Array<Int>>?,
-    ) {
-        val parsedReschedule: Array<Reschedule>?
-            get() = reschedule?.run { Array(size) { i -> this[i].toReschedule() } }
-
-        private fun Array<Int>.toReschedule() = when (size) {
-            2 -> Reschedule(this[0], this[1])
-            else -> Reschedule(this[0], this[1], this[2], this[3])
-        }
-    }
 
     fun String.formatTime(): String {
         val time = replace('：', ':').trim()

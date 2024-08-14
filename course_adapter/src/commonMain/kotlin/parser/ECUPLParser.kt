@@ -6,28 +6,32 @@ import bean.TimeTable
 import bean.WeekBean
 import com.fleeksoft.ksoup.Ksoup
 import com.fleeksoft.ksoup.nodes.Element
+import kotlinx.datetime.LocalDate
+import kotlinx.datetime.LocalDateTime
+import kotlinx.datetime.LocalTime
+import kotlinx.datetime.toInstant
 import utils.Common
-import java.text.SimpleDateFormat
-import java.util.Locale
 
 /** A modified version of [SupwisdomParser]. */
 class ECUPLParser(source: String) : Parser(source) {
 
     private val doc = Ksoup.parse(source)
 
-    private val script = doc.selectFirst("script[language=JavaScript]")?.data() ?: throw Exception("未找到数据")
-    private val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.ENGLISH)
+    private val script = doc.selectFirst("script[language=JavaScript]")?.data()
+        ?: throw Exception("未找到数据")
     private val semesterStart: Long
     private val timeTable: List<TimePeriod>
 
     class TimePeriod(val start: Int, val end: Int)
 
-    private fun Int.formatTime() = "%02d:%02d".format(this / 100, this % 100)
+    private fun Int.formatTime(): String {
+        return "${(this / 100).toString().padStart(2, '0')}:${(this % 100).toString().padStart(2, '0')}"
+    }
 
     init {
         val regex = Regex("""new CourseTable\('([-\d]+?)',\[([\d\[\],]+)\]\)""")
         val match = regex.find(script) ?: throw Exception("未找到起始日和时间表信息")
-        semesterStart = dateFormat.parse(match.groupValues[1]).time
+        semesterStart = LocalDateTime(LocalDate.parse(match.groupValues[1]), LocalTime(0, 0, 0)).toInstant(kotlinx.datetime.TimeZone.UTC).epochSeconds
         timeTable = Regex("""\[(\d+),(\d+)\]""").findAll(match.groupValues[2]).asIterable().map {
             TimePeriod(it.groupValues[1].toInt(), it.groupValues[2].toInt())
         }
@@ -87,11 +91,12 @@ class ECUPLParser(source: String) : Parser(source) {
     }
 
     private fun parseWeekBeans(yearStartDate: String, rawWeekBits: Long): List<WeekBean> {
-        val yearStart = dateFormat.parse(yearStartDate).time
-        val offsetMillis = yearStart - semesterStart
-        val millisInWeek = 1000L * 86400 * 7
+        val yearStart = LocalDateTime(LocalDate.parse(yearStartDate), LocalTime(0, 0, 0)).toInstant(kotlinx.datetime.TimeZone.UTC).epochSeconds
 
-        val weekOffset = offsetMillis.floorDiv(millisInWeek).toInt()
+        val offsetMillis = yearStart - semesterStart
+        val secondsInWeek = 86400L * 7
+
+        val weekOffset = offsetMillis.floorDiv(secondsInWeek).toInt()
 
         val weeks = ArrayList<Int>(16)
         val trailingZeros = rawWeekBits.countTrailingZeroBits()
@@ -165,6 +170,6 @@ class ECUPLParser(source: String) : Parser(source) {
                     note = note,
                 )
             }
-        }.toMutableList()
+        }.toCollection(ArrayList())
     }
 }

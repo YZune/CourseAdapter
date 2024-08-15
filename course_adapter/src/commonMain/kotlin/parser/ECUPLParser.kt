@@ -9,6 +9,7 @@ import com.fleeksoft.ksoup.nodes.Element
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.LocalTime
+import kotlinx.datetime.minus
 import kotlinx.datetime.toInstant
 import utils.Common
 
@@ -19,7 +20,7 @@ class ECUPLParser(source: String) : Parser(source) {
 
     private val script = doc.selectFirst("script[language=JavaScript]")?.data()
         ?: throw Exception("未找到数据")
-    private val semesterStart: Long
+    private val semesterStart: LocalDate
     private val timeTable: List<TimePeriod>
 
     class TimePeriod(val start: Int, val end: Int)
@@ -31,7 +32,7 @@ class ECUPLParser(source: String) : Parser(source) {
     init {
         val regex = Regex("""new CourseTable\('([-\d]+?)',\[([\d\[\],]+)\]\)""")
         val match = regex.find(script) ?: throw Exception("未找到起始日和时间表信息")
-        semesterStart = LocalDateTime(LocalDate.parse(match.groupValues[1]), LocalTime(0, 0, 0)).toInstant(kotlinx.datetime.TimeZone.UTC).epochSeconds
+        semesterStart = LocalDate.parse(match.groupValues[1])
         timeTable = Regex("""\[(\d+),(\d+)\]""").findAll(match.groupValues[2]).asIterable().map {
             TimePeriod(it.groupValues[1].toInt(), it.groupValues[2].toInt())
         }
@@ -91,12 +92,9 @@ class ECUPLParser(source: String) : Parser(source) {
     }
 
     private fun parseWeekBeans(yearStartDate: String, rawWeekBits: Long): List<WeekBean> {
-        val yearStart = LocalDateTime(LocalDate.parse(yearStartDate), LocalTime(0, 0, 0)).toInstant(kotlinx.datetime.TimeZone.UTC).epochSeconds
+        val yearStart = LocalDate.parse(yearStartDate)
 
-        val offsetMillis = yearStart - semesterStart
-        val secondsInWeek = 86400L * 7
-
-        val weekOffset = offsetMillis.floorDiv(secondsInWeek).toInt()
+        val weekOffset = (yearStart - semesterStart).days / 7
 
         val weeks = ArrayList<Int>(16)
         val trailingZeros = rawWeekBits.countTrailingZeroBits()
@@ -115,11 +113,11 @@ class ECUPLParser(source: String) : Parser(source) {
 
     override suspend fun generateCourseList(): MutableList<Course> {
         val regex = Regex(
-            """newActivity\(".*?","(.*?)",".+?","(.+?)",".*?","(.*?)","([-\d]+)",(\d+)\);[\n\s\S]+?addActivityByTime\(activity,(\d),(\d+),(\d+)\);"""
+            """newActivity\(".*?","(.*?)",".+?","(.+?)",".*?","(.*?)","([-\d]+)",(\d+)\);[\s\S]+?addActivityByTime\(activity,(\d),(\d+),(\d+)\);"""
         )
         val courseDetailsMap = parseCourseDetailsTable(doc.select(".listTable")[1])
 
-        return regex.findAll(script).asIterable().flatMap { match ->
+        return regex.findAll(script).asIterable().flatMapTo(mutableListOf()) { match ->
             val groupValues = match.groupValues
 
             val nameWithNumber = groupValues[2]
@@ -170,6 +168,6 @@ class ECUPLParser(source: String) : Parser(source) {
                     note = note,
                 )
             }
-        }.toCollection(ArrayList())
+        }
     }
 }

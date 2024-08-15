@@ -7,10 +7,7 @@ import bean.WeekBean
 import com.fleeksoft.ksoup.Ksoup
 import com.fleeksoft.ksoup.nodes.Element
 import kotlinx.datetime.LocalDate
-import kotlinx.datetime.LocalDateTime
-import kotlinx.datetime.LocalTime
-import kotlinx.datetime.minus
-import kotlinx.datetime.toInstant
+import kotlinx.datetime.daysUntil
 import utils.Common
 
 /** A modified version of [SupwisdomParser]. */
@@ -94,7 +91,7 @@ class ECUPLParser(source: String) : Parser(source) {
     private fun parseWeekBeans(yearStartDate: String, rawWeekBits: Long): List<WeekBean> {
         val yearStart = LocalDate.parse(yearStartDate)
 
-        val weekOffset = (yearStart - semesterStart).days / 7
+        val weekOffset = semesterStart.daysUntil(yearStart).floorDiv(7) // Might be negative
 
         val weeks = ArrayList<Int>(16)
         val trailingZeros = rawWeekBits.countTrailingZeroBits()

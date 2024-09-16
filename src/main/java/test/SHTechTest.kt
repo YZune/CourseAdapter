@@ -6,7 +6,8 @@ import java.io.File
 
 fun main() {
 
-    val file = File("./inputsist.html")
+    val file = File("/home/trace/Documents/cour.html")
     val parser = SHTechParser(file.readText())
     parser.saveCourse()
+
 }

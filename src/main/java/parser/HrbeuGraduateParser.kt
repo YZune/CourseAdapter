@@ -57,8 +57,8 @@ class HrbeuGraduateParser(source: String) : Parser(source) {
             val endNode = matchResult.groupValues[3].takeIf { it.isNotEmpty() }?.toInt() ?: startNode
             intArrayOf(startNode, endNode)
         }.toMutableList()
-        // 合并区间 [1,1]和[2,2] -> [1,2]
-        mergeCourse(allNodeList).forEach { (startNode, endNode) ->
+
+        mergeInterval(allNodeList).forEach { (startNode, endNode) ->
             if (moreTeacher in splitEnd[1]) {
                 for (item in splitEnd[3].split(";")) {
                     val teacher = teachRegex.find(item)?.groupValues?.get(1) ?: ""
@@ -78,10 +78,13 @@ class HrbeuGraduateParser(source: String) : Parser(source) {
         teacher: String, startNode: Int, endNode: Int, split: List<String>
     ): List<Course> {
         // 所有周
-        return numWeekRegex.findAll(item).map { matchResult ->
+        val allWeekList = numWeekRegex.findAll(item).map { matchResult ->
             val startWeek = matchResult.groupValues[1].toInt()
             val endWeek = matchResult.groupValues[3].takeIf { it.isNotEmpty() }?.toInt() ?: startWeek
+            intArrayOf(startWeek, endWeek)
+        }.toMutableList()
 
+        return mergeInterval(allWeekList).map { (startWeek, endWeek) ->
             Course(
                 splitEnd[0], dayIndex, splitEnd[4], teacher, startNode, endNode,
                 startWeek, endWeek, 0, 0f, split.subList(5, split.size).joinToString()
@@ -89,7 +92,8 @@ class HrbeuGraduateParser(source: String) : Parser(source) {
         }.toList()
     }
 
-    private fun mergeCourse(intervals: MutableList<IntArray>): MutableList<IntArray> {
+    // 合并区间 [1,1]和[2,2] -> [1,2]
+    private fun mergeInterval(intervals: MutableList<IntArray>): MutableList<IntArray> {
         // 排序
         intervals.sortBy { it.first() }
         val ans = mutableListOf<IntArray>()

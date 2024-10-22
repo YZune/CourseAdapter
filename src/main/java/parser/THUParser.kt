@@ -38,7 +38,7 @@ class THUParser(source: String) : Parser(source) {
 
     // 学期数据
 
-    fun semesterDataUrl(semester: String) = "https://schedule.sdevs.top/$semester.json"
+    fun semesterDataUrl(semester: String) = "https://schedule-data.netlify.app/$semester.json"
 
     var reschedule = emptyArray<Reschedule>()
 

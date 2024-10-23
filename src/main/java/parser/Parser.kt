@@ -64,7 +64,15 @@ abstract class Parser(val source: String) {
             _detailList.forEach {
                 println(it)
             }
-            Generator(_baseList,_detailList)
+            Generator(
+                _baseList,
+                _detailList,
+                generateTimeTable(),
+                getTableName(),
+                getNodes(),
+                getStartDate(),
+                getMaxWeek()
+            )
         }
         return _baseList.size
     }

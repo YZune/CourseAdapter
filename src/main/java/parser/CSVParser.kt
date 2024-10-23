@@ -26,10 +26,12 @@ class CSVParser(source: String) : Parser(source) {
                             type = 1
                             endWeek = weeks[1].substringBefore('单').trim().toInt()
                         }
+
                         weekStr.contains('双') -> {
                             type = 2
                             endWeek = weeks[1].substringBefore('双').trim().toInt()
                         }
+
                         else -> {
                             type = 0
                             endWeek = weeks[1].trim().toInt()

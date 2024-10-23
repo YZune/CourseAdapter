@@ -61,6 +61,7 @@ object Common {
     const val TYPE_XYTC = "xytc" // 襄阳职业技术学院
     const val TYPE_FDU = "fdu" // 复旦大学
     const val TYPE_CQUPT = "cqupt" // 重庆邮电大学
+    const val TYPE_FSTVC = "fstvc" // 福州软件职业技术学院
 
     val nodePattern = Regex("""\(\d{1,2}[-]*\d*节""")
     val nodePattern1 = Regex("""\d{1,2}[~]*\d*节""")
@@ -74,8 +75,21 @@ object Common {
 
 
     val chineseWeekList = arrayOf("", "周一", "周二", "周三", "周四", "周五", "周六", "周日")
-    val englishAbbrWeekList = arrayOf("","mon","tue","wed","thu","fri","sat","sun")
-    val otherHeader = arrayOf("时间", "星期一", "星期二", "星期三", "星期四", "星期五", "星期六", "星期日", "早晨", "上午", "下午", "晚上")
+    val englishAbbrWeekList = arrayOf("", "mon", "tue", "wed", "thu", "fri", "sat", "sun")
+    val otherHeader = arrayOf(
+        "时间",
+        "星期一",
+        "星期二",
+        "星期三",
+        "星期四",
+        "星期五",
+        "星期六",
+        "星期日",
+        "早晨",
+        "上午",
+        "下午",
+        "晚上"
+    )
     val courseProperty = arrayOf(
         "任选",
         "限选",
@@ -175,10 +189,12 @@ object Common {
                         temp.type = 0
                         temp.end = input[i + 1]
                     }
+
                     2 -> {
                         temp.type = if (input[i] % 2 != 0) 1 else 2
                         temp.end = input[i + 1]
                     }
+
                     else -> {
                         temp.end = input[i]
                         temp.type = 0
@@ -291,33 +307,33 @@ object Common {
     }
 
     fun containNodeInt(nodeStr: String): Int {
-        if(nodeStr.contains('一'))
+        if (nodeStr.contains('一'))
             return 1
-        if(nodeStr.contains('二'))
+        if (nodeStr.contains('二'))
             return 2
-        if(nodeStr.contains('三'))
+        if (nodeStr.contains('三'))
             return 3
-        if(nodeStr.contains('四'))
+        if (nodeStr.contains('四'))
             return 4
-        if(nodeStr.contains('五'))
+        if (nodeStr.contains('五'))
             return 5
-        if(nodeStr.contains('六'))
+        if (nodeStr.contains('六'))
             return 6
-        if(nodeStr.contains('七'))
+        if (nodeStr.contains('七'))
             return 7
-        if(nodeStr.contains('八'))
+        if (nodeStr.contains('八'))
             return 8
-        if(nodeStr.contains('九'))
+        if (nodeStr.contains('九'))
             return 9
-        if(nodeStr.contains('十'))
+        if (nodeStr.contains('十'))
             return 10
-        if(nodeStr.contains("十一"))
+        if (nodeStr.contains("十一"))
             return 11
-        if(nodeStr.contains("十二"))
+        if (nodeStr.contains("十二"))
             return 12
-        if(nodeStr.contains("十三"))
+        if (nodeStr.contains("十三"))
             return 13
-        if(nodeStr.contains("十四"))
+        if (nodeStr.contains("十四"))
             return 14
         return -1
     }
@@ -399,13 +415,14 @@ object Common {
      * @return Int
      */
     fun getDayInt(day: String): Int {
-        return getNodeInt(day.replace("星期",""))
+        return getNodeInt(day.replace("星期", ""))
     }
 
     /*时间及其比较、距离*/
     class TimeHM(str: String) {
         var hour: Int = 0
         var minute: Int = 0
+
         init {
             val arr = str.split(":")
             hour = arr[0].toInt()
@@ -421,29 +438,35 @@ object Common {
             if (this.hour > other.hour) return 1
             return 0
         }
+
         operator fun plus(m: Int): TimeHM {
             var r = this
             r.minute += m; r.hour += r.minute / 60; r.minute %= 60;
-            if (r.minute < 0) { r.minute += 60; r.hour -= 1; }
+            if (r.minute < 0) {
+                r.minute += 60; r.hour -= 1; }
             return r
         }
+
         operator fun minus(m: Int): TimeHM = this + (-m)
 
         fun duration(other: TimeHM): Int {
             val h: Int = this.hour - other.hour
             val m: Int = this.minute - other.minute
-            return abs(60*h+m)
+            return abs(60 * h + m)
         }
+
         fun duration(other: String): Int {
             val o = TimeHM(other)
             return duration(o)
         }
+
         fun timeCmp(other: String): Int {
             val o = TimeHM(other)
             return compareTo(o)
         }
+
         override fun toString(): String {
-            fun nToString(i: Int): String = "${if (i<0) "-" else ""}${if (abs(i)<10) "0" else ""}${abs(i)}"
+            fun nToString(i: Int): String = "${if (i < 0) "-" else ""}${if (abs(i) < 10) "0" else ""}${abs(i)}"
             return "${nToString(hour)}:${nToString(minute)}"
         }
     }

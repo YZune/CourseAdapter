@@ -111,17 +111,25 @@ class FSTVCParser(
     }
 
     private val courseTableUrlList: List<String> = getCourseTableUrlList()
-    private val firstTableTitle: String =
-        Jsoup
+
+
+    private val firstTableTitle: String
+    private val tableName: String
+    private val startDate: String
+
+    init {
+        val soup = Jsoup
             .connect(courseTableUrlList[0])
             .cookies(cookies)
             .get()
-            .selectFirst("div.f2")
-            .text()
 
-    private val tableName: String = (firstTableTitle.substringBefore(" ")
-            + "课程表("
-            + firstTableTitle.substringAfter("("))
+        firstTableTitle = soup.selectFirst("div.f2").text()
+        tableName = (firstTableTitle.substringBefore(" ")
+                + "课程表("
+                + firstTableTitle.substringAfter("("))
+        startDate = soup.selectFirst("table tr > td:nth-child(2)").text().split(" ")[1]
+    }
+
     private val isFirstTablePeak: Boolean = firstPeakDepartments.any { firstTableTitle.contains(it) }
     private val timeTable: TimeTable = if (isFirstTablePeak) {
         TimeTable(
@@ -176,6 +184,8 @@ class FSTVCParser(
     override fun getNodes(): Int = nodeNum
 
     override fun getMaxWeek(): Int = maxWeek
+
+    override fun getStartDate(): String = startDate
 
     override fun generateTimeTable(): TimeTable = timeTable
 }

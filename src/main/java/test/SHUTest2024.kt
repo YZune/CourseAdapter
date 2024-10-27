@@ -5,7 +5,7 @@ import java.io.File
 
 
 fun main() {
-    val file = File("your HTML file path here")
+    val file = File("D:\\r.html")
     val parser = SHUParser2024(file.readText())
     parser.saveCourse()
 }

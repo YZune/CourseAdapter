@@ -28,46 +28,83 @@ class SHUParser2024(source: String) : Parser(source) {
         val doc: Document = Jsoup.parse(source)
 
         // 解析课程详细信息表格
-        val rows = doc.select("div.arranged-content table.el-table__body tbody tr.el-table__row")
+        val cards = doc.select("div.arranged-content div.el-card.arranged-course-card")
 
         // 用于将索引字母映射到课程名称
         val indexCourseMap = mutableMapOf<String, String>()
+        for (card in cards) {
+            val items = card.select("div.card-item.cv-clearfix")
+            val dataMap = mutableMapOf<String, String>()
 
-        for (row in rows) {
-            val cells = row.select("td")
-            if (cells.size >= 11) {
-                val index = cells[0].text().trim()
-                val courseName = cells[1].text().trim()
-                val courseCode = cells[2].text().trim()
-                val credit = cells[3].text().trim().toFloatOrNull() ?: 0f
-                val teacher = cells[5].text().trim()
-                val classTime = cells[6].text().trim()
-                val classRoom = cells[7].text().trim()
+            for (item in items) {
+                val label = item.selectFirst("div.label.cv-pull-left")?.text()?.trim()?.removeSuffix(":")
+                val value = item.selectFirst("div.value.cv-pull-left")?.text()?.trim() ?: ""
 
-                // 保存索引和课程名称的映射
-                indexCourseMap[index] = courseName
+                if (label != null) {
+                    dataMap[label] = value
+                }
+            }
+            val index = dataMap["#"] ?: ""
+            val courseName = dataMap["课程名"] ?: ""
+            val courseCode = dataMap["课程号"] ?: ""
+            val credit = dataMap["学分"]?.toFloatOrNull() ?: 0f
+            val teacher = dataMap["上课教师"] ?: ""
+            val classTime = dataMap["上课时间"] ?: ""
+            val classRoom = dataMap["上课地点"] ?: ""
 
-                // 解析上课时间，生成课程条目
-                val scheduleEntries = parseClassTime(classTime)
-                for (entry in scheduleEntries) {
-                    val course = Course(
-                        name = courseName,
-                        room = classRoom,
-                        teacher = teacher,
-                        day = entry.day,
-                        startNode = entry.startNode,
-                        endNode = entry.endNode,
-                        startWeek = entry.weeks.first(),
-                        endWeek = entry.weeks.last(),
-                        type = entry.weekType,
-                        credit = credit,
-                        note = ""
-                    )
-                    courseList.add(course)
+            // 保存索引和课程名称的映射
+            indexCourseMap[index] = courseName
+
+            // 解析上课时间，生成课程条目
+            val scheduleEntries = parseClassTime(classTime)
+            for (entry in scheduleEntries) {
+                val course = Course(
+                    name = courseName,
+                    room = classRoom,
+                    teacher = teacher,
+                    day = entry.day,
+                    startNode = entry.startNode,
+                    endNode = entry.endNode,
+                    startWeek = entry.weeks.first(),
+                    endWeek = entry.weeks.last(),
+                    type = entry.weekType,
+                    credit = credit,
+                    note = ""
+                )
+                courseList.add(course)
+            }
+        }
+        if(courseList.isEmpty()){ // 课程表格为空，尝试解析另一种电脑版UI格式
+            println("课程表格为空，尝试解析另一种电脑版UI格式")
+            val rows = doc.select("div.arranged-content table.el-table__body tbody tr.el-table__row")
+            for (row in rows) {
+                val cells = row.select("td")
+                if (cells.size >= 11) {
+                    val courseName = cells[1].text().trim()
+                    val credit = cells[3].text().trim().toFloatOrNull() ?: 0f
+                    val teacher = cells[5].text().trim()
+                    val classTime = cells[6].text().trim()
+                    val classRoom = cells[7].text().trim()
+                    val scheduleEntries = parseClassTime(classTime)
+                    for (entry in scheduleEntries) {
+                        val course = Course(
+                            name = courseName,
+                            room = classRoom,
+                            teacher = teacher,
+                            day = entry.day,
+                            startNode = entry.startNode,
+                            endNode = entry.endNode,
+                            startWeek = entry.weeks.first(),
+                            endWeek = entry.weeks.last(),
+                            type = entry.weekType,
+                            credit = credit,
+                            note = ""
+                        )
+                        courseList.add(course)
+                    }
                 }
             }
         }
-
         return courseList
     }
 
@@ -75,6 +112,7 @@ class SHUParser2024(source: String) : Parser(source) {
     override fun getNodes(): Int = nodeNum
     override fun getMaxWeek(): Int = maxWeek
     override fun getTableName(): String? = parseTermName(source)
+
 
     private fun parseTermName(source: String): String? {
         val doc: Document = Jsoup.parse(source)
@@ -92,7 +130,6 @@ class SHUParser2024(source: String) : Parser(source) {
                 val season = matchResult.groupValues[3] // 提取季节
 
                 formattedTerm = "$startYear-$endYear$season"
-                println("当前学期: $formattedTerm")
             }
 
         }
@@ -228,4 +265,5 @@ class SHUParser2024(source: String) : Parser(source) {
         var weeks: List<Int>,
         val weekType: Int // 0: 全部周，1: 单周，2: 双周
     )
+
 }

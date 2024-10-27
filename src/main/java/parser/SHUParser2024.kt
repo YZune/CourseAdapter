@@ -46,7 +46,6 @@ class SHUParser2024(source: String) : Parser(source) {
             }
             val index = dataMap["#"] ?: ""
             val courseName = dataMap["课程名"] ?: ""
-            val courseCode = dataMap["课程号"] ?: ""
             val credit = dataMap["学分"]?.toFloatOrNull() ?: 0f
             val teacher = dataMap["上课教师"] ?: ""
             val classTime = dataMap["上课时间"] ?: ""
@@ -58,23 +57,43 @@ class SHUParser2024(source: String) : Parser(source) {
             // 解析上课时间，生成课程条目
             val scheduleEntries = parseClassTime(classTime)
             for (entry in scheduleEntries) {
-                val course = Course(
-                    name = courseName,
-                    room = classRoom,
-                    teacher = teacher,
-                    day = entry.day,
-                    startNode = entry.startNode,
-                    endNode = entry.endNode,
-                    startWeek = entry.weeks.first(),
-                    endWeek = entry.weeks.last(),
-                    type = entry.weekType,
-                    credit = credit,
-                    note = ""
-                )
-                courseList.add(course)
+                if (entry.weekType == 3) {
+                    for (week in entry.weeks) {
+                        val course = Course(
+                            name = courseName,
+                            room = classRoom,
+                            teacher = teacher,
+                            day = entry.day,
+                            startNode = entry.startNode,
+                            endNode = entry.endNode,
+                            startWeek = week,
+                            endWeek = week,
+                            type = 0,
+                            credit = credit,
+                            note = ""
+                        )
+                        courseList.add(course)
+                    }
+                } else {
+                    val course = Course(
+                        name = courseName,
+                        room = classRoom,
+                        teacher = teacher,
+                        day = entry.day,
+                        startNode = entry.startNode,
+                        endNode = entry.endNode,
+                        startWeek = entry.weeks.first(),
+                        endWeek = entry.weeks.last(),
+                        type = entry.weekType,
+                        credit = credit,
+                        note = ""
+                    )
+                    courseList.add(course)
+                }
+
             }
         }
-        if(courseList.isEmpty()){ // 课程表格为空，尝试解析另一种电脑版UI格式
+        if (courseList.isEmpty()) { // 课程表格为空，尝试解析另一种电脑版UI格式
             println("课程表格为空，尝试解析另一种电脑版UI格式")
             val rows = doc.select("div.arranged-content table.el-table__body tbody tr.el-table__row")
             for (row in rows) {
@@ -87,20 +106,40 @@ class SHUParser2024(source: String) : Parser(source) {
                     val classRoom = cells[7].text().trim()
                     val scheduleEntries = parseClassTime(classTime)
                     for (entry in scheduleEntries) {
-                        val course = Course(
-                            name = courseName,
-                            room = classRoom,
-                            teacher = teacher,
-                            day = entry.day,
-                            startNode = entry.startNode,
-                            endNode = entry.endNode,
-                            startWeek = entry.weeks.first(),
-                            endWeek = entry.weeks.last(),
-                            type = entry.weekType,
-                            credit = credit,
-                            note = ""
-                        )
-                        courseList.add(course)
+                        if (entry.weekType == 3) {
+                            for (week in entry.weeks) {
+                                val course = Course(
+                                    name = courseName,
+                                    room = classRoom,
+                                    teacher = teacher,
+                                    day = entry.day,
+                                    startNode = entry.startNode,
+                                    endNode = entry.endNode,
+                                    startWeek = week,
+                                    endWeek = week,
+                                    type = 0,
+                                    credit = credit,
+                                    note = ""
+                                )
+                                courseList.add(course)
+                            }
+                        } else {
+                            val course = Course(
+                                name = courseName,
+                                room = classRoom,
+                                teacher = teacher,
+                                day = entry.day,
+                                startNode = entry.startNode,
+                                endNode = entry.endNode,
+                                startWeek = entry.weeks.first(),
+                                endWeek = entry.weeks.last(),
+                                type = entry.weekType,
+                                credit = credit,
+                                note = ""
+                            )
+                            courseList.add(course)
+                        }
+
                     }
                 }
             }
@@ -165,7 +204,10 @@ class SHUParser2024(source: String) : Parser(source) {
             } else if (timePart.endsWith("双")) {
                 weekType = 2
                 timePart = timePart.substring(0, timePart.length - 1)
+            } else if (weeks.size != weeks.last() - weeks.first() + 1) {
+                weekType = 3
             }
+
 
             val dayMap = mapOf(
                 "一" to 1,
@@ -193,11 +235,7 @@ class SHUParser2024(source: String) : Parser(source) {
 
                 entries.add(
                     ScheduleEntry(
-                        day = day,
-                        startNode = startNode,
-                        endNode = endNode,
-                        weeks = weeks,
-                        weekType = weekType
+                        day = day, startNode = startNode, endNode = endNode, weeks = weeks, weekType = weekType
                     )
                 )
             }
@@ -241,8 +279,7 @@ class SHUParser2024(source: String) : Parser(source) {
     }
 
     private val timeTable: TimeTable = TimeTable(
-        "上海大学",
-        listOf(
+        "上海大学", listOf(
             TimeDetail(1, "08:00", "08:45"),
             TimeDetail(2, "08:55", "09:40"),
             TimeDetail(3, "10:00", "10:45"),

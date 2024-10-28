@@ -24,5 +24,6 @@
     <orderEntry type="library" name="org.jsoup:jsoup:1.12.1" level="project" />
     <orderEntry type="library" name="com.google.code.gson:gson:2.8.6" level="project" />
     <orderEntry type="library" name="kotlin-csv-jvm-0.11.0" level="project" />
+    <orderEntry type="library" name="jetbrains.kotlinx.coroutines.core" level="project" />
   </component>
 </module>

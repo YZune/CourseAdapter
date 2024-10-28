@@ -1,6 +1,7 @@
 import bean.Course
 import bean.CourseBaseBean
 import bean.WeekBean
+import kotlinx.coroutines.sync.Semaphore
 import java.lang.Math.abs
 import java.security.MessageDigest
 
@@ -468,6 +469,15 @@ object Common {
         override fun toString(): String {
             fun nToString(i: Int): String = "${if (i < 0) "-" else ""}${if (abs(i) < 10) "0" else ""}${abs(i)}"
             return "${nToString(hour)}:${nToString(minute)}"
+        }
+    }
+
+    suspend fun <T> Semaphore.acquireInBlock(block: suspend () -> T): T {
+        acquire()
+        return try {
+            block()
+        } finally {
+            release()
         }
     }
 }

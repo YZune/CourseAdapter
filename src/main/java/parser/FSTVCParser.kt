@@ -1,6 +1,9 @@
 package main.java.parser
 
+import Common.acquireInBlock
 import bean.Course
+import kotlinx.coroutines.*
+import kotlinx.coroutines.sync.Semaphore
 import main.java.bean.TimeDetail
 import main.java.bean.TimeTable
 import org.jsoup.Jsoup
@@ -55,14 +58,11 @@ class FSTVCParser(
         return urlReg.findAll(body).toList().map { "${baseUrl}${it.groups["url"]!!.value}" }
     }
 
-    private fun getCoursesFromUrl(url: String, weekNum: Int): List<Course> {
+    private fun getCoursesFromTableSource(source: String, weekNum: Int): List<Course> {
         // 处理横着排序且中间有空位的表格
-        val soup = Jsoup.connect(url).cookies(cookies).get()
+        val soup = Jsoup.parse(source)
         val tableElem = soup.selectFirst("table")
-        val cellElem = tableElem
-            .select("tr")
-            .drop(1)
-            .map { it.children().drop(1) }
+        val cellElem = tableElem.select("tr").drop(1).map { it.children().drop(1) }
 
         val weekCourseList = Array<MutableList<TableCell<Course?>>>(7) { mutableListOf() }
         for ((currentNode, row) in cellElem.withIndex()) {
@@ -104,37 +104,38 @@ class FSTVCParser(
             }
         }
 
-        return weekCourseList
-            .toList()
-            .flatten()
-            .mapNotNull { it.value }
+        return weekCourseList.toList().flatten().mapNotNull { it.value }
     }
 
     private val courseTableUrlList: List<String> = getCourseTableUrlList()
-
+    private val courseTableSources: List<String> = runBlocking {
+        val sem = Semaphore(8)
+        courseTableUrlList.map {
+            async {
+                sem.acquireInBlock {
+                    withContext(Dispatchers.IO) {
+                        Jsoup.connect(it).cookies(cookies).execute().body()
+                    }
+                }
+            }
+        }.awaitAll()
+    }
 
     private val firstTableTitle: String
     private val tableName: String
     private val startDate: String
 
     init {
-        val soup = Jsoup
-            .connect(courseTableUrlList[0])
-            .cookies(cookies)
-            .get()
-
+        val soup = Jsoup.parse(courseTableSources[0])
         firstTableTitle = soup.selectFirst("div.f2").text()
-        tableName = (firstTableTitle.substringBefore(" ")
-                + "课程表("
-                + firstTableTitle.substringAfter("("))
+        tableName = (firstTableTitle.substringBefore(" ") + "课程表(" + firstTableTitle.substringAfter("("))
         startDate = soup.selectFirst("table tr > td:nth-child(2)").text().split(" ")[1]
     }
 
     private val isFirstTablePeak: Boolean = firstPeakDepartments.any { firstTableTitle.contains(it) }
     private val timeTable: TimeTable = if (isFirstTablePeak) {
         TimeTable(
-            "福软错峰第一批次时间表",
-            listOf(
+            "福软错峰第一批次时间表", listOf(
                 TimeDetail(1, "08:25", "09:10"),
                 TimeDetail(2, "09:15", "10:00"),
                 TimeDetail(3, "10:10", "10:55"),
@@ -153,8 +154,7 @@ class FSTVCParser(
         )
     } else {
         TimeTable(
-            "福软错峰第二批次时间表",
-            listOf(
+            "福软错峰第二批次时间表", listOf(
                 TimeDetail(1, "08:45", "09:30"),
                 TimeDetail(2, "09:35", "10:20"),
                 TimeDetail(3, "10:30", "11:15"),
@@ -174,9 +174,9 @@ class FSTVCParser(
     }
 
     override fun generateCourseList(): List<Course> {
-        return courseTableUrlList
-            .mapIndexed { i, url -> getCoursesFromUrl(url, i + 1) }
-            .flatten()
+        return courseTableSources.mapIndexed { i, it ->
+            getCoursesFromTableSource(it, i + 1)
+        }.flatten()
     }
 
     override fun getTableName(): String = tableName

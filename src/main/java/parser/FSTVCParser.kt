@@ -11,6 +11,8 @@ import main.java.bean.TimeTable
 import org.jsoup.Connection.Method
 import org.jsoup.Jsoup
 import parser.Parser
+import java.text.SimpleDateFormat
+import java.util.*
 import kotlin.math.ceil
 
 
@@ -66,21 +68,23 @@ class FSTVCParser(
         @SerializedName("zc") val week: Int,
         @SerializedName("skrq") val date: String,
         /** 课程节数，`-` 分隔 */
-        @SerializedName("jc") val nodes: String,
+        @SerializedName("jcshow") val nodes: String,
         @SerializedName("skcdmc") val room: String,
         @SerializedName("sknl") val content: String,
         @SerializedName("xq") val semester: Int,
         @SerializedName("xqs") val day: Int,
         @SerializedName("xn") val schoolYear: String,
     ) {
-        val startNode: Int
-        val endNode: Int
-
-        init {
-            val nList = nodes.split("-")
-            startNode = nList.first().toInt()
-            endNode = nList.last().toInt()
-        }
+        private var _nodesLi: List<Int>? = null
+        private val nodesLi: List<Int>
+            get() {
+                if (_nodesLi == null) {
+                    _nodesLi = nodes.split("-").map { it.toInt() }
+                }
+                return _nodesLi!!
+            }
+        val startNode: Int get() = nodesLi.first()
+        val endNode: Int get() = nodesLi.last()
     }
 
     private data class StudyPlanAPIReturn(
@@ -154,6 +158,8 @@ class FSTVCParser(
                             "page" to page.toString(),
                             "rows" to limit.toString(),
                             "zc" to (weekNum ?: 0).toString(),
+                            "sort" to "skrq", // 日期从低到高
+                            "order" to "asc",
                         )
                     )
                     .method(Method.POST)
@@ -169,7 +175,7 @@ class FSTVCParser(
         val totalPage = ceil(firstData.total.toDouble() / limit).toInt()
         val sem = Semaphore(4)
         return coroutineScope {
-            (2..totalPage)
+            firstData.rows + (2..totalPage)
                 .map { page -> async { sem.acquireInBlock { task(page) } } }
                 .awaitAll()
                 .flatMap { it.rows }
@@ -186,7 +192,7 @@ class FSTVCParser(
         startWeek = plan.week,
         endWeek = plan.week,
         type = 0,
-        note = plan.content.trim(),
+        // note = normalizeLineEnds(plan.content.trim())
     )
 
     override fun generateCourseList(): List<Course> {
@@ -195,7 +201,14 @@ class FSTVCParser(
 
         val p0 = plans.first()
         tableName = "福软${p0.className}课程表（${p0.schoolYear}第${p0.semester}学期）"
-        startDate = p0.date
+        val p0Date = SimpleDateFormat("yyyy-MM-dd").parse(p0.date)
+        startDate = SimpleDateFormat("yyyy-MM-dd").format(
+            Date(
+                p0Date.time
+                        - ((p0.week - 1).toLong() * 604800000)  // * 7 * 24 * 60 * 60 * 1000
+                        - ((p0.day - 1).toLong() * 86400000) // * 24 * 60 * 60 * 1000
+            )
+        )
         val isFirstTablePeak = firstPeakDepartments.any { it.contains(p0.className) }
         setTimeTable(isFirstTablePeak)
 

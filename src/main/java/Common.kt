@@ -144,7 +144,7 @@ object Common {
     private val headerNodePattern = Regex("""第.*节""")
 
     private fun toHex(byteArray: ByteArray): String {
-        //转成16进制后是32字节
+        // 转成16进制后是32字节
         return with(StringBuilder()) {
             byteArray.forEach {
                 val hex = it.toInt() and (0xFF)

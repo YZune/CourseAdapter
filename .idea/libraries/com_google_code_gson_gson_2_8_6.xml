@@ -5,6 +5,8 @@
       <root url="jar://$MAVEN_REPOSITORY$/com/google/code/gson/gson/2.8.6/gson-2.8.6.jar!/" />
     </CLASSES>
     <JAVADOC />
-    <SOURCES />
+    <SOURCES>
+      <root url="jar://$USER_HOME$/.ideaLibSources/gson-2.8.6-sources.jar!/" />
+    </SOURCES>
   </library>
 </component>

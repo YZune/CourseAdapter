@@ -2,26 +2,36 @@ package main.java.parser
 
 import Common.acquireInBlock
 import bean.Course
+import com.google.gson.GsonBuilder
+import com.google.gson.annotations.SerializedName
 import kotlinx.coroutines.*
 import kotlinx.coroutines.sync.Semaphore
 import main.java.bean.TimeDetail
 import main.java.bean.TimeTable
+import org.jsoup.Connection.Method
 import org.jsoup.Jsoup
 import parser.Parser
+import java.text.SimpleDateFormat
+import java.util.*
+import kotlin.math.ceil
 
 
 /**
  * 福州软件职业技术学院
+ *
+ * 注意：调用 `generateCourseList()` 后，其他重载函数才会返回正确信息
+ *
  * @author student_2333 <lgc2333@126.com>
  */
 class FSTVCParser(
     phpSessionId: String,  // from cookies
 ) : Parser("") {
+    private val gson = GsonBuilder().create()
     private val cookies = mapOf("PHPSESSID" to phpSessionId)
     private val baseUrl = "http://112.111.43.241"
-    private val courseTableUrl = "${baseUrl}/studentportal.php/Jxxx/xskbxx/optype/1"
+    private val studyPlanUrl = "${baseUrl}/studentportal.php/Jxxx/xxjdxx"
 
-    private val nodeNum = 14
+    private val nodeNum = 12
     private val maxWeek = 20
 
     // 错峰第一批次专业表
@@ -50,142 +60,168 @@ class FSTVCParser(
         "工业软件开发技术",
     )
 
-    private data class TableCell<T>(var value: T, var height: Int = 1)
-
-    private fun getCourseTableUrlList(): List<String> {
-        val body = Jsoup.connect(courseTableUrl).cookies(cookies).execute().body()
-        val urlReg = Regex("p.find\\('iframe'\\).attr\\('src','(?<url>.+?)'\\);")
-        return urlReg.findAll(body).toList().map { "${baseUrl}${it.groups["url"]!!.value}" }
+    private data class StudyPlan(
+        /** 班级描述 */
+        @SerializedName("skbjmc") val className: String,
+        @SerializedName("kcmc") val courseName: String,
+        @SerializedName("skjsxm") val teacher: String,
+        @SerializedName("zc") val week: Int,
+        @SerializedName("skrq") val date: String,
+        /** 课程节数，`-` 分隔 */
+        @SerializedName("jcshow") val nodes: String,
+        @SerializedName("skcdmc") val room: String,
+        @SerializedName("sknl") val content: String,
+        @SerializedName("xq") val semester: Int,
+        @SerializedName("xqs") val day: Int,
+        @SerializedName("xn") val schoolYear: String,
+    ) {
+        private var _nodesLi: List<Int>? = null
+        private val nodesLi: List<Int>
+            get() {
+                if (_nodesLi == null) {
+                    _nodesLi = nodes.split("-").map { it.toInt() }
+                }
+                return _nodesLi!!
+            }
+        val startNode: Int get() = nodesLi.first()
+        val endNode: Int get() = nodesLi.last()
     }
 
-    private fun getCoursesFromTableSource(source: String, weekNum: Int): List<Course> {
-        // 处理横着排序且中间有空位的表格
-        val soup = Jsoup.parse(source)
-        val tableElem = soup.selectFirst("table")
-        val cellElem = tableElem.select("tr").drop(1).map { it.children().drop(1) }
+    private data class StudyPlanAPIReturn(
+        val rows: List<StudyPlan>,
+        val total: Int,
+    )
 
-        val weekCourseList = Array<MutableList<TableCell<Course?>>>(7) { mutableListOf() }
-        for ((currentNode, row) in cellElem.withIndex()) {
-            for (cell in row) {
-                val weekIndex = fun(): Int {
-                    for ((i, courses) in weekCourseList.withIndex()) {
-                        val weekLength = courses.sumOf { it.height }
-                        if (weekLength < currentNode + 1) return i
-                    }
-                    return weekCourseList.size - 1
-                }.invoke()
-                val currList = weekCourseList[weekIndex]
+    private var tableName: String? = null
+    private var startDate: String? = null
+    private var timeTable: TimeTable? = null
 
-                val nodeLength = cell.attr("rowspan").toInt()
-                val infoDiv = cell.selectFirst("div")
-                if (infoDiv == null) {
-                    if (currList.isEmpty() || currList.last().value != null) {
-                        currList.add(TableCell(null, nodeLength))
-                    } else {
-                        currList.last().height += nodeLength
-                    }
-                    continue
-                }
-
-                val cellContent = infoDiv.attr("title")
-                val (name, teacher, room) = cellContent.split("\n")
-                val course = Course(
-                    name = name,
-                    teacher = teacher,
-                    room = room,
-                    day = weekIndex + 1,
-                    startNode = currentNode + 1,
-                    endNode = currentNode + nodeLength,
-                    startWeek = weekNum,
-                    endWeek = weekNum,
-                    type = 0
+    private fun setTimeTable(isFirstTablePeak: Boolean) {
+        timeTable = if (isFirstTablePeak) {
+            TimeTable(
+                "福软错峰第一批次时间表", listOf(
+                    TimeDetail(1, "08:25", "09:10"),
+                    TimeDetail(2, "09:15", "10:00"),
+                    TimeDetail(3, "10:10", "10:55"),
+                    TimeDetail(4, "11:00", "11:45"),
+                    TimeDetail(5, "13:50", "14:35"),
+                    TimeDetail(6, "14:40", "15:25"),
+                    TimeDetail(7, "15:35", "16:20"),
+                    TimeDetail(8, "16:25", "17:10"),
+                    TimeDetail(9, "18:30", "19:15"),
+                    TimeDetail(10, "19:25", "20:10"),
+                    TimeDetail(11, "20:20", "21:05"),
+                    TimeDetail(12, "21:15", "22:00"),
                 )
-                currList.add(TableCell(course, nodeLength))
+            )
+        } else {
+            TimeTable(
+                "福软错峰第二批次时间表", listOf(
+                    TimeDetail(1, "08:45", "09:30"),
+                    TimeDetail(2, "09:35", "10:20"),
+                    TimeDetail(3, "10:30", "11:15"),
+                    TimeDetail(4, "11:20", "12:05"),
+                    TimeDetail(5, "13:50", "14:35"),
+                    TimeDetail(6, "14:40", "15:25"),
+                    TimeDetail(7, "15:35", "16:20"),
+                    TimeDetail(8, "16:25", "17:10"),
+                    TimeDetail(9, "18:30", "19:15"),
+                    TimeDetail(10, "19:25", "20:10"),
+                    TimeDetail(11, "20:20", "21:05"),
+                    TimeDetail(12, "21:15", "22:00"),
+                )
+            )
+        }
+    }
+
+    private suspend fun getStudyPlanApiUrl(): String {
+        val soup = withContext(Dispatchers.IO) {
+            Jsoup.connect(studyPlanUrl).cookies(cookies).get()
+        }
+        val apiData = soup
+            .selectFirst("table#mainlist")
+            .attr("data-options")
+        val path = Regex("url:'(?<url>.+?)'").find(apiData)!!.groups["url"]!!.value
+        return "${baseUrl}${path}"
+    }
+
+    private suspend fun fetchStudyPlans(apiUrl: String, weekNum: Int? = null): List<StudyPlan> {
+        val limit = 30
+
+        suspend fun task(page: Int): StudyPlanAPIReturn {
+            val raw = withContext(Dispatchers.IO) {
+                Jsoup
+                    .connect(apiUrl)
+                    .cookies(cookies)
+                    .data(
+                        mapOf(
+                            "page" to page.toString(),
+                            "rows" to limit.toString(),
+                            "zc" to (weekNum ?: 0).toString(),
+                            "sort" to "skrq", // 日期从低到高
+                            "order" to "asc",
+                        )
+                    )
+                    .method(Method.POST)
+                    .execute()
+                    .body()
             }
+            return gson.fromJson(raw, StudyPlanAPIReturn::class.java)
         }
 
-        return weekCourseList.toList().flatten().mapNotNull { it.value }
+        val firstData = task(1)
+        if (firstData.rows.size >= firstData.total) return firstData.rows
+
+        val totalPage = ceil(firstData.total.toDouble() / limit).toInt()
+        val sem = Semaphore(4)
+        return coroutineScope {
+            firstData.rows + (2..totalPage)
+                .map { page -> async { sem.acquireInBlock { task(page) } } }
+                .awaitAll()
+                .flatMap { it.rows }
+        }
     }
 
-    private val courseTableUrlList: List<String> = getCourseTableUrlList()
-    private val courseTableSources: List<String> = runBlocking {
-        val sem = Semaphore(8)
-        courseTableUrlList.map {
-            async {
-                sem.acquireInBlock {
-                    withContext(Dispatchers.IO) {
-                        Jsoup.connect(it).cookies(cookies).execute().body()
-                    }
-                }
-            }
-        }.awaitAll()
-    }
-
-    private val firstTableTitle: String
-    private val tableName: String
-    private val startDate: String
-
-    init {
-        val soup = Jsoup.parse(courseTableSources[0])
-        firstTableTitle = soup.selectFirst("div.f2").text()
-        tableName = (firstTableTitle.substringBefore(" ") + "课程表(" + firstTableTitle.substringAfter("("))
-        startDate = soup.selectFirst("table tr > td:nth-child(2)").text().split(" ")[1]
-    }
-
-    private val isFirstTablePeak: Boolean = firstPeakDepartments.any { firstTableTitle.contains(it) }
-    private val timeTable: TimeTable = if (isFirstTablePeak) {
-        TimeTable(
-            "福软错峰第一批次时间表", listOf(
-                TimeDetail(1, "08:25", "09:10"),
-                TimeDetail(2, "09:15", "10:00"),
-                TimeDetail(3, "10:10", "10:55"),
-                TimeDetail(4, "11:00", "11:45"),
-                TimeDetail(5, "11:45", "13:00"),  // 中午 1，空
-                TimeDetail(6, "13:00", "13:50"),  // 中午 2，空
-                TimeDetail(7, "13:50", "14:35"),
-                TimeDetail(8, "14:40", "15:25"),
-                TimeDetail(9, "15:35", "16:20"),
-                TimeDetail(10, "16:25", "17:10"),
-                TimeDetail(11, "18:30", "19:15"),
-                TimeDetail(12, "19:25", "20:10"),
-                TimeDetail(13, "20:20", "21:05"),
-                TimeDetail(14, "21:15", "22:00"),
-            )
-        )
-    } else {
-        TimeTable(
-            "福软错峰第二批次时间表", listOf(
-                TimeDetail(1, "08:45", "09:30"),
-                TimeDetail(2, "09:35", "10:20"),
-                TimeDetail(3, "10:30", "11:15"),
-                TimeDetail(4, "11:20", "12:05"),
-                TimeDetail(5, "12:05", "13:00"),  // 中午 1，空
-                TimeDetail(6, "13:00", "13:50"),  // 中午 2，空
-                TimeDetail(7, "13:50", "14:35"),
-                TimeDetail(8, "14:40", "15:25"),
-                TimeDetail(9, "15:35", "16:20"),
-                TimeDetail(10, "16:25", "17:10"),
-                TimeDetail(11, "18:30", "19:15"),
-                TimeDetail(12, "19:25", "20:10"),
-                TimeDetail(13, "20:20", "21:05"),
-                TimeDetail(14, "21:15", "22:00"),
-            )
-        )
-    }
+    private fun transformPlanToCourse(plan: StudyPlan): Course = Course(
+        name = plan.courseName,
+        day = plan.day,
+        room = plan.room,
+        teacher = plan.teacher,
+        startNode = plan.startNode,
+        endNode = plan.endNode,
+        startWeek = plan.week,
+        endWeek = plan.week,
+        type = 0,
+        // note = normalizeLineEnds(plan.content.trim())
+    )
 
     override fun generateCourseList(): List<Course> {
-        return courseTableSources.mapIndexed { i, it ->
-            getCoursesFromTableSource(it, i + 1)
-        }.flatten()
+        val apiUrl = runBlocking { getStudyPlanApiUrl() }
+        val plans = runBlocking { fetchStudyPlans(apiUrl) }  // 0 为全部周次
+
+        val p0 = plans.first()
+        tableName = "福软${p0.className}课程表（${p0.schoolYear}第${p0.semester}学期）"
+        val p0Date = SimpleDateFormat("yyyy-MM-dd").parse(p0.date)
+        startDate = SimpleDateFormat("yyyy-MM-dd").format(
+            Date(
+                p0Date.time
+                        - ((p0.week - 1).toLong() * 604800000)  // * 7 * 24 * 60 * 60 * 1000
+                        - ((p0.day - 1).toLong() * 86400000) // * 24 * 60 * 60 * 1000
+            )
+        )
+        val isFirstTablePeak = firstPeakDepartments.any { p0.className.contains(it) }
+        setTimeTable(isFirstTablePeak)
+
+        return plans.map(::transformPlanToCourse)
     }
 
-    override fun getTableName(): String = tableName
+    override fun getTableName(): String? = tableName
 
     override fun getNodes(): Int = nodeNum
 
     override fun getMaxWeek(): Int = maxWeek
 
-    override fun getStartDate(): String = startDate
+    override fun getStartDate(): String? = startDate
 
-    override fun generateTimeTable(): TimeTable = timeTable
+    override fun generateTimeTable(): TimeTable? = timeTable
 }

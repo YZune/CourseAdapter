@@ -209,7 +209,7 @@ class FSTVCParser(
                         - ((p0.day - 1).toLong() * 86400000) // * 24 * 60 * 60 * 1000
             )
         )
-        val isFirstTablePeak = firstPeakDepartments.any { it.contains(p0.className) }
+        val isFirstTablePeak = firstPeakDepartments.any { p0.className.contains(it) }
         setTimeTable(isFirstTablePeak)
 
         return plans.map(::transformPlanToCourse)

@@ -3,8 +3,9 @@ package main.java.parser
 import bean.Course
 import org.jsoup.Jsoup
 import parser.Parser
-
+import java.io.File
 import java.util.regex.Pattern
+import kotlin.io.path.readText
 
 
 class CTGUParser(source:String) : Parser(source) {
@@ -73,10 +74,17 @@ class CTGUParser(source:String) : Parser(source) {
     }
 
     override fun generateCourseList(): List<Course> {
+        // 获取文件所在目录 Path
+        val file = File(source)
+        val directory = file.getParentFile().toPath()
+        // 查找课表文件
+        val courseFileName = "home.html"
+        val courseFilePath = directory.resolve(courseFileName)
+        // 新建课程列表
         val courseList = arrayListOf<Course>()
         // 转换课程源文件
-        val doc = Jsoup.parse(source)
-        //页面共有四个tbody标签，第四个是包含课程条目的课程表主体部分
+        val doc = Jsoup.parse(courseFilePath.readText())
+        // 页面共有四个tbody标签，第四个是包含课程条目的课程表主体部分
         val courseTable = doc.select("tbody")[3]
 
         val rows = courseTable.select("tr")
@@ -94,7 +102,7 @@ class CTGUParser(source:String) : Parser(source) {
             // 获取上课的星期几
             val courseDay = chineseDayMap[timeDetails[1]]
             // 获取上课的节数
-            //正则表达式，只匹配数字
+            // 正则表达式，只匹配数字
             val pattern = Pattern.compile("\\d+")
             val matcher = pattern.matcher(timeDetails[2])
             matcher.find()

@@ -69,8 +69,8 @@ class FSTVCParser(
         @SerializedName("skrq") val date: String,
         /** 课程节数，`-` 分隔 */
         @SerializedName("jcshow") val nodes: String,
-        @SerializedName("skcdmc") val room: String,
-        @SerializedName("sknl") val content: String,
+        @SerializedName("skcdmc") val room: String?,
+        // @SerializedName("sknl") val content: String,
         @SerializedName("xq") val semester: Int,
         @SerializedName("xqs") val day: Int,
         @SerializedName("xn") val schoolYear: String,
@@ -185,7 +185,7 @@ class FSTVCParser(
     private fun transformPlanToCourse(plan: StudyPlan): Course = Course(
         name = plan.courseName,
         day = plan.day,
-        room = plan.room,
+        room = plan.room ?: "",
         teacher = plan.teacher,
         startNode = plan.startNode,
         endNode = plan.endNode,

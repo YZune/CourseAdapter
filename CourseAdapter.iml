@@ -25,5 +25,7 @@
     <orderEntry type="library" name="com.google.code.gson:gson:2.8.6" level="project" />
     <orderEntry type="library" name="kotlin-csv-jvm-0.11.0" level="project" />
     <orderEntry type="library" name="jetbrains.kotlinx.coroutines.core" level="project" />
+    <orderEntry type="library" name="github.doyaaaaaken.kotlin.csv.jvm" level="project" />
+    <orderEntry type="library" name="json" level="project" />
   </component>
 </module>

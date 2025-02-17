@@ -1,8 +1,8 @@
 package parser.wakeup
 
 import bean.Course
-import main.java.bean.TimeDetail 
-import main.java.bean.TimeTable  
+import main.java.bean.TimeDetail
+import main.java.bean.TimeTable
 import org.jsoup.Jsoup
 import parser.Parser
 
@@ -12,8 +12,8 @@ import parser.Parser
  * 登录完成后进入地址然后执行数据采集：http://jw.gxic.net/JWXS/pkgl/XsKB_List.aspx
  *
  * @author JiuXia2025
- * @version 1.0
- * @date 2025.01.14
+ * @version 1.1
+ * @date 2025.02.17
  * 如有BUG问题请联系我：https://github.com/JiuXia2025
  */
 class WakeupParser(source: String) : Parser(source) {
@@ -24,7 +24,7 @@ class WakeupParser(source: String) : Parser(source) {
     override fun generateCourseList(): List<Course> {
         val courseList = arrayListOf<Course>()
         val doc = Jsoup.parse(source)
-        val kbtable = doc.select("table[width='98%']").first() 
+        val kbtable = doc.select("table").first() 
         val trs = kbtable.select("tr") 
 
         
@@ -48,7 +48,7 @@ class WakeupParser(source: String) : Parser(source) {
             val tds = tr.select("td") 
             if (tds.isEmpty()) continue 
 
-            
+            // 获取节次信息（从第一列中提取）
             val nodeText = tds[0].text().trim()
             val startNode = nodeMap[nodeText] ?: continue 
 
@@ -62,11 +62,13 @@ class WakeupParser(source: String) : Parser(source) {
                     val courseHtml = courseElement.attr("title") 
                     if (courseHtml.isBlank()) continue
 
-                    val courseName = courseElement.select("br").first()?.previousSibling()?.toString()?.trim() ?: ""
+                    
+                    val courseName = courseHtml.substringAfter("课程名称：").substringBefore("\n").trim()
                     val teacher = courseHtml.substringAfter("授课教师：").substringBefore("\n").trim()
                     val room = courseHtml.substringAfter("开课地点：").substringBefore("\n").trim()
                     val weekStr = courseHtml.substringAfter("上课周次：").substringBefore("\n").trim()
 
+                    
                     val weekList = weekStr.split(',')
                     var startWeek = 0
                     var endWeek = 0
@@ -83,11 +85,11 @@ class WakeupParser(source: String) : Parser(source) {
                                     weeks[1].contains('双') -> 2
                                     else -> 0
                                 }
-                                endWeek = weeks[1].substringBefore('(').toInt()
+                                endWeek = weeks[1].substringBefore('(').replace("单", "").replace("双", "").toIntOrNull() ?: endWeek
                             }
                         } else {
-                            startWeek = it.substringBefore('(').toInt()
-                            endWeek = it.substringBefore('(').toInt()
+                            startWeek = it.substringBefore('(').replace("单", "").replace("双", "").toIntOrNull() ?: startWeek
+                            endWeek = it.substringBefore('(').replace("单", "").replace("双", "").toIntOrNull() ?: endWeek
                         }
                         courseList.add(
                             Course(
@@ -127,7 +129,6 @@ class WakeupParser(source: String) : Parser(source) {
             add("20:30", "21:10")
         }
     }
-
     
     private fun buildTimeTable(name: String, block: TimeTableBuilder.() -> Unit): TimeTable {
         val builder = TimeTableBuilder(name)
@@ -135,7 +136,6 @@ class WakeupParser(source: String) : Parser(source) {
         return builder.build()
     }
 
-    
     private class TimeTableBuilder(private val name: String) {
         private val timeList = mutableListOf<TimeDetail>()
         private var nodeCounter = 1

@@ -56,15 +56,7 @@ class HLJUParser(source: String) : Parser(source) {
         val courseName = courseSource[0].substringBeforeLast('【')
         // 解析教师姓名
         val teacher = courseSource[1].substringAfter("[").substringBeforeLast(']')
-        // 解析教室信息，如果courseSource的第三个元素不为空且非空白，则使用它；否则，从第二个元素中提取
-//        val room = if (courseSource.size > 2 && courseSource[2].trim().isNotBlank()) {
-//            courseSource[2].trim()
-//        } else {
-//            val tmp = courseSource[1].split(' ')
-//            tmp[tmp.size - 1] // 取第二个元素中的最后一个单词作为教室信息
-//        }
-        // 解析课程时间信息
-//        val timeStr
+        // 解析教室信息
         val room = courseSource[2].substringAfter("][").substringBeforeLast(']')
         val weekList = courseSource[2].substringAfter('[').substringBeforeLast('周').split(",")
         val nodeStr = courseSource[3].substringAfter('第').substringBeforeLast('节') // 分割节点信息
@@ -104,14 +96,14 @@ class HLJUParser(source: String) : Parser(source) {
                     }
                 }
                 if (node && weekIf) {
-                    // 创建Course对象并添加到courseList中
+                    
                     courseList.add(
                         Course(
                             name = courseName, room = room,
                             teacher = teacher, day = day,
                             startNode = startNode, endNode = startNode + step - 1,
                             startWeek = startWeek, endWeek = endWeek,
-                            type = 0 // 课程类型，这里假设为0，具体含义可能依赖于Course类的定义
+                            type = 0 
                         )
                     )
                 }

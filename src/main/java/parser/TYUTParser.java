@@ -13,14 +13,6 @@ import java.util.List;
 
 
 /**
- *
- * 使用：
- * 1.太原理工大学教务系统网址 “http://utsp.sxzyckj.com/loginXsJs.html”
- * 2。连接校园网或VPN进入该网址
- * 3.进入到“课表查询界面”
- * 4.获取到JavaScript加载过的网页代码，作为构造函数的参数传入source
- * 5.接收generateCourseList()返回的list。
- *
  * 邮箱：xingyuan_guo@outlook.com
  * @author Ez
  */
@@ -55,14 +47,9 @@ public class TYUTParser extends Parser {
             int startNode = Integer.parseInt(s2es[0]);
             int endNode = Integer.parseInt(s2es[1]);
             String week = cols.get(9).text().replace("周","");
-            int type,startWeek,endWeek;
-            if (week.contains("-")){
-                type = 0;
                 String[] weeks = week.split("-");
                 startWeek = Integer.parseInt(weeks[0]);
                 endWeek = Integer.parseInt(weeks[1]);
-            }else if (week.contains(",")){
-                String[] weeks = week.split(",");
                 if (Integer.parseInt(weeks[0])%2==1){
                     //单周
                     type = 1;
@@ -74,14 +61,8 @@ public class TYUTParser extends Parser {
                     startWeek = Integer.parseInt(weeks[0]);
                     endWeek = Integer.parseInt(weeks[weeks.length-1]);
                 }
-            }else{
-                type = 0;
-                startWeek = Integer.parseInt(week);
-                endWeek = Integer.parseInt(week);
             }
             float credit = Float.parseFloat(cols.get(4).text());
-            String node = (cols.get(5).text()+" "+cols.get(6).text()).trim();
-            Course course = new Course(courseName,day,room,teacher,startNode,endNode,startWeek,endWeek,type,credit,node,"","");
             courseList.add(course);
         }
         return courseList;

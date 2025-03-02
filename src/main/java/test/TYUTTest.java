@@ -15,7 +15,7 @@ public class TYUTTest {
         TYUTParser parser = new TYUTParser(source);
         List<Course> list = parser.generateCourseList();
         for (Course course : list) {
-            System.out.println(course.getName());
+            System.out.println(course);
         }
     }
 

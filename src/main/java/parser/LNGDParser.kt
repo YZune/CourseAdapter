@@ -1,10 +1,28 @@
 package parser
 
 import bean.Course
+import main.java.bean.TimeDetail
+import main.java.bean.TimeTable
 import org.jsoup.Jsoup
 
 class LNGDParser(source: String) : Parser(source) {
-    override fun getNodes(): Int = 10
+    override fun getNodes(): Int = 12
+
+    override fun generateTimeTable(): TimeTable {
+        return TimeTable(
+            name = "轨道装备学院",
+            timeList = listOf(
+                TimeDetail(1, "08:20", "09:05"),
+                TimeDetail(2, "09:15", "10:00"),
+                TimeDetail(3, "10:10", "10:55"),
+                TimeDetail(4, "11:05", "11:50"),
+                TimeDetail(5, "13:20", "14:05"),
+                TimeDetail(6, "14:15", "15:00"),
+                TimeDetail(7, "15:10", "15:55"),
+                TimeDetail(8, "16:05", "15:50")
+            )
+        )
+    }
 
     override fun generateCourseList() : List<Course> {
         val courseList = arrayListOf<Course>()
@@ -31,7 +49,6 @@ class LNGDParser(source: String) : Parser(source) {
                 fragment = it.split(" ").toList()
                 for (i in fragment) {
                     name = fragment[0]
-                    print(fragment)
                     teacher = "周([\\u4e00-\\u9fa5]+)".toRegex().find(fragment[2])?.let { it1 -> it1.groupValues[1] }.toString()
 
                     credit = fragment[1].replace("[^0-9]".toRegex(), "").toFloat() / 10

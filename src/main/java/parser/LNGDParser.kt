@@ -20,6 +20,8 @@ class LNGDParser(source: String) : Parser(source) {
                 TimeDetail(6, "14:15", "15:00"),
                 TimeDetail(7, "15:10", "15:55"),
                 TimeDetail(8, "16:05", "15:50"),
+                TimeDetail(9, "17:00", "17:45"),
+                TimeDetail(10, "17:55", "18:40"),
                 TimeDetail(11, "18:50", "19:35"),
                 TimeDetail(12, "19:45", "20:30"),
             )

@@ -21,14 +21,14 @@ import kotlin.math.ceil
  *
  * 注意：调用 `generateCourseList()` 后，其他重载函数才会返回正确信息
  *
- * @author student_2333 <lgc2333@126.com>
+ * @author LgCookie <lgc2333@126.com>
  */
 class FSTVCParser(
     phpSessionId: String,  // from cookies
 ) : Parser("") {
     private val gson = GsonBuilder().create()
     private val cookies = mapOf("PHPSESSID" to phpSessionId)
-    private val baseUrl = "http://112.111.43.241"
+    private val baseUrl = "https://jw.fzrjxy.com"
     private val studyPlanUrl = "${baseUrl}/studentportal.php/Jxxx/xxjdxx"
 
     private val nodeNum = 12

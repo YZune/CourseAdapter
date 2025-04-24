@@ -2,6 +2,7 @@ import bean.Course
 import bean.CourseBaseBean
 import bean.WeekBean
 import kotlinx.coroutines.sync.Semaphore
+import main.java.bean.TimeTable
 import java.lang.Math.abs
 import java.security.MessageDigest
 
@@ -63,6 +64,7 @@ object Common {
     const val TYPE_FDU = "fdu" // 复旦大学
     const val TYPE_CQUPT = "cqupt" // 重庆邮电大学
     const val TYPE_FSTVC = "fstvc" // 福州软件职业技术学院
+    const val TYPE_WIST = "wsit" // 武汉船舶职业技术学院
 
     val nodePattern = Regex("""\(\d{1,2}[-]*\d*节""")
     val nodePattern1 = Regex("""\d{1,2}[~]*\d*节""")
@@ -391,7 +393,7 @@ object Common {
                                 pre.copy(
                                     startWeek = weekBean.start,
                                     endWeek = weekBean.end,
-                                    type = weekBean.type
+                                    type = weekBean.type,
                                 )
                             )
                         }
@@ -480,4 +482,15 @@ object Common {
             release()
         }
     }
+
+    // ✅ 自动补全 startTime 和 endTime 字段
+    fun generateTimeTable(list: List<Course>, table: TimeTable) {
+        list.forEach { course ->
+            val start = table.timeList.find { it.node == course.startNode }
+            val end = table.timeList.find { it.node == course.endNode }
+            course.startTime = start?.startTime ?: ""
+            course.endTime = end?.endTime ?: ""
+        }
+    }
+
 }

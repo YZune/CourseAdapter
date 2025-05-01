@@ -492,5 +492,4 @@ object Common {
             course.endTime = end?.endTime ?: ""
         }
     }
-
 }

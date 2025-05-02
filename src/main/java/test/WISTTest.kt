@@ -55,8 +55,8 @@ fun main() {
         println("⚠️ 共发现 ${conflicts.size} 处课程冲突：")
         conflicts.forEachIndexed { idx, (c1, c2) ->
             println("  冲突 ${idx + 1}:")
-            println("    课程 A: ${c1.name} (星期${c1.day}, 周${c1.startWeek}-${c1.endWeek}, 节次 ${c1.startNode}-${c1.endNode})")
-            println("    课程 B: ${c2.name} (星期${c2.day}, 周${c2.startWeek}-${c2.endWeek}, 节次 ${c2.startNode}-${c2.endNode})")
+            println("  课程 A: ${c1.name} (星期${c1.day}, 周${c1.startWeek}-${c1.endWeek}, 节次 ${c1.startNode}-${c1.endNode})")
+            println("  课程 B: ${c2.name} (星期${c2.day}, 周${c2.startWeek}-${c2.endWeek}, 节次 ${c2.startNode}-${c2.endNode})")
         }
     }
 }

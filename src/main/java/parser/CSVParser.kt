@@ -3,7 +3,7 @@ package parser
 import bean.Course
 import com.github.doyaaaaaken.kotlincsv.dsl.csvReader
 
-class CSVParser(source: String) : Parser(source) {
+class CSVParser(source: String) : Parser() {
 
     override fun generateCourseList(): List<Course> {
         val courseList = arrayListOf<Course>()
@@ -47,10 +47,10 @@ class CSVParser(source: String) : Parser(source) {
                 courseList.add(
                     Course(
                         name = line[0], day = line[1].trim().toInt(),
+                        room = line[5], teacher = line[4],
                         startNode = startNode, endNode = endNode,
-                        teacher = line[4], room = line[5],
                         startWeek = startWeek, endWeek = endWeek,
-                        type = type
+                        type = type,
                     )
                 )
             }

@@ -3,7 +3,7 @@ package parser
 import bean.Course
 import org.jsoup.Jsoup
 
-class CSXYParser(source: String) : Parser(source) {
+class CSXYParser(source: String) : Parser() {
     override fun generateCourseList(): List<Course> {
         val courseList = arrayListOf<Course>()
         val doc = Jsoup.parse(source)
@@ -31,7 +31,7 @@ class CSXYParser(source: String) : Parser(source) {
                                     Course(
                                         name = name, day = day, room = room, teacher = teacher,
                                         startNode = node * 2 - 1, endNode = node * 2, startWeek = week.toInt(),
-                                        endWeek = week.toInt(), type = 0
+                                        endWeek = week.toInt(), type = 0,
                                     )
                                 )
                             } else {
@@ -39,7 +39,7 @@ class CSXYParser(source: String) : Parser(source) {
                                     Course(
                                         name = name, day = day, room = room, teacher = teacher,
                                         startNode = node * 2 - 1, endNode = node * 2, startWeek = split[0].toInt(),
-                                        endWeek = split[1].toInt(), type = 0
+                                        endWeek = split[1].toInt(), type = 0,
                                     )
                                 )
                             }

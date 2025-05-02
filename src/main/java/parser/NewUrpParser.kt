@@ -6,7 +6,7 @@ import bean.NewUrpCourseInfo
 import com.google.gson.Gson
 import com.google.gson.JsonParser
 
-class NewUrpParser(source: String) : Parser(source) {
+class NewUrpParser(source: String) : Parser() {
 
     override fun generateCourseList(): List<Course> {
         val result = arrayListOf<Course>()
@@ -35,7 +35,7 @@ class NewUrpParser(source: String) : Parser(source) {
                             startNode = detail.classSessions,
                             endNode = detail.classSessions + detail.continuingSession - 1,
                             startWeek = week.start, endWeek = week.end,
-                            type = week.type
+                            type = week.type,
                         )
                     )
                 }

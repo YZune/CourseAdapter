@@ -48,7 +48,7 @@ public class RUCParser extends Parser {
     String source;
 
     public RUCParser(@NotNull java.lang.String source) {
-        super(source);
+        super();
         this.source = source; // I have only learned very little about kotlin and java, but it seems that `super(source)` should have given us a `final String source` and `source = this.source`?
         //But the line above is necessary, and I do not know why.
     }

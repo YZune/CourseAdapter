@@ -5,7 +5,7 @@ import main.java.bean.TimeDetail
 import main.java.bean.TimeTable
 import org.jsoup.Jsoup
 
-class LNGDParser(source: String) : Parser(source) {
+class LNGDParser(source: String) : Parser() {
     override fun getNodes(): Int = 12
 
     override fun generateTimeTable(): TimeTable {
@@ -95,15 +95,15 @@ class LNGDParser(source: String) : Parser(source) {
                                     courseList.add(
                                         Course(
                                             name = name,
+                                            day = day,
                                             room = room,
                                             teacher = teacher,
-                                            day = day,
                                             startNode = startNode,
                                             endNode = endNode,
                                             startWeek = startWeek,
                                             endWeek = endWeek,
                                             type = 0,
-                                            credit = credit
+                                            credit = credit,
                                         )
                                     )
                                     }

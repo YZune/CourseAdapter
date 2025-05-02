@@ -16,7 +16,7 @@ import parser.Parser
  * @date 2025.01.14
  * 如有BUG问题请联系我：https://github.com/JiuXia2025
  */
-class WakeupParser(source: String) : Parser(source) {
+class WakeupParser(source: String) : Parser() {
 
     private val sundayFirstDayMap = arrayOf(0, 7, 1, 2, 3, 4, 5, 6)
     private var sundayFirst = false
@@ -92,14 +92,14 @@ class WakeupParser(source: String) : Parser(source) {
                         courseList.add(
                             Course(
                                 name = courseName,
+                                day = colIndex,
                                 room = room,
                                 teacher = teacher,
-                                day = colIndex, 
                                 startNode = startNode,
-                                endNode = startNode + 1, 
+                                endNode = startNode + 1,
                                 startWeek = startWeek,
                                 endWeek = endWeek,
-                                type = type
+                                type = type,
                             )
                         )
                     }

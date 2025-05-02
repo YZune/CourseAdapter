@@ -9,7 +9,7 @@ import bean.Course
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Element as Element
 
-class SYSUParser2024(source: String) : Parser(source) {
+class SYSUParser2024(source: String) : Parser() {
     override fun generateCourseList(): List<Course> {
         val table = Jsoup.parse(source).getElementById("table-bot")
         var courseList = getCourseInfo(table)
@@ -45,9 +45,10 @@ class SYSUParser2024(source: String) : Parser(source) {
                     endNode = getEndNode(td, section),
                     startWeek = getStartWeek(td),
                     endWeek = getEndWeek(td),
+                    type = 0,
                     startTime = getStartTime(timeList, section),
                     endTime = getEndTime(timeList, getEndNode(td, section)),
-                    type = 0 // 好像只有每周的情况
+                    // 好像只有每周的情况
                 )
                 ret.add(course)
             }

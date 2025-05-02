@@ -18,7 +18,7 @@ import java.time.LocalDate
  * 之后再依次选择【课程与成绩】->【选课结果查询】，跳转至最终页面 https://yjsjy.nwpu.edu.cn/pyxx/pygl/xkjg/index
  * source 即为上述【选课结果查询】最终页面的网页源代码
  */
-class NWPUGraduateParser(source: String) : Parser(source) {
+class NWPUGraduateParser(source: String) : Parser() {
     var changanCount = 0
     var youyiCount = 0
     var currentSemesterText = "1970-1971秋"
@@ -245,7 +245,7 @@ class NWPUGraduateParser(source: String) : Parser(source) {
                                     endWeek = endWeek,
                                     type = type,
                                     credit = credit,
-                                    note = "$noteCollege $noteCourseId $noteDesc".trim()
+                                    note = "$noteCollege $noteCourseId $noteDesc".trim(),
                                 )
                             )
                             // 从当前开始重新计算连续
@@ -266,7 +266,7 @@ class NWPUGraduateParser(source: String) : Parser(source) {
                                     endWeek = endWeek,
                                     type = type,
                                     credit = credit,
-                                    note = "$noteCollege $noteCourseId $noteDesc".trim()
+                                    note = "$noteCollege $noteCourseId $noteDesc".trim(),
                                 )
                             )
                         }

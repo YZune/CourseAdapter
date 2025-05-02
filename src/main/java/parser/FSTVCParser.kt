@@ -25,7 +25,7 @@ import kotlin.math.ceil
  */
 class FSTVCParser(
     phpSessionId: String,  // from cookies
-) : Parser("") {
+) : Parser() {
     private val gson = GsonBuilder().create()
     private val cookies = mapOf("PHPSESSID" to phpSessionId)
     private val baseUrl = "https://jw.fzrjxy.com"
@@ -191,7 +191,7 @@ class FSTVCParser(
         endNode = plan.endNode,
         startWeek = plan.week,
         endWeek = plan.week,
-        type = 0,
+        type = 0,,
         // note = normalizeLineEnds(plan.content.trim())
     )
 

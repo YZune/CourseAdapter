@@ -64,12 +64,12 @@ class QzWithNodeParser(source: String) : QzParser(source) {
             }
             courseList.add(
                 Course(
-                    name = courseName, teacher = teacher,
-                    room = room, day = day,
+                    name = courseName, day = day,
+                    room = room, teacher = teacher,
                     startNode = startNode,
                     endNode = endNode,
                     startWeek = startWeek, endWeek = endWeek,
-                    type = type
+                    type = type,
                 )
             )
         }

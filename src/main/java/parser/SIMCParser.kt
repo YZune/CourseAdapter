@@ -8,7 +8,7 @@ import parser.Parser
 import java.time.LocalDate
 import kotlin.collections.ArrayList
 
-class SIMCParser(source: String) : Parser(source) {
+class SIMCParser(source: String) : Parser() {
 
     private val dom = Jsoup.parse(source)
 
@@ -50,18 +50,18 @@ class SIMCParser(source: String) : Parser(source) {
                     res.add(
                         Course(
                             name = e.name.replace(Regex("""\(([0-9]{4})\)\((.*?)\)"""), ""),
-                            teacher = e.teacher,
+                            day = e.day,
                             room = e.position,
+                            teacher = e.teacher,
                             startNode = it.first(),
                             endNode = it.last(),
                             startWeek = week.start,
                             endWeek = week.end,
                             type = week.type,
-                            day = e.day,
-                            note = e.note,
                             credit = e.credit,
+                            note = e.note,
                             startTime = e.startTime,
-                            endTime = e.endTime
+                            endTime = e.endTime,
                         )
                     )
                 }

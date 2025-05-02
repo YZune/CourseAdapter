@@ -64,7 +64,7 @@ var personId: String = ""
 
 class NWPUParser(
     private val xh: String, private val pwd: String, private val semesterYear: String, private val semesterTerm: Int
-) : Parser("") {
+) : Parser() {
 
     private val headers: HashMap<String, String> = hashMapOf(
         "User-Agent" to "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/104.0.5111.0 Safari/537.36",
@@ -187,7 +187,7 @@ class NWPUParser(
                             // maxWeekIndex(activity.asJsonObject.get("weekIndexes").asJsonArray),
                             type = 0,
                             credit = activity.asJsonObject.get("credits").asFloat,
-                            note = activity.asJsonObject.get("lessonCode").asString
+                            note = activity.asJsonObject.get("lessonCode").asString,
                         )
                     )
                     // 通过统计各校区的 activity 数来决定校区

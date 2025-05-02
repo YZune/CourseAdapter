@@ -12,7 +12,7 @@ import parser.Parser
  * 重庆对外经贸学院
  */
 
-class CCIBEParser(source: String) : Parser(source) {
+class CCIBEParser(source: String) : Parser() {
 
     override fun generateCourseList(): List<Course> {
         val courseList = ArrayList<Course>()
@@ -38,10 +38,6 @@ class CCIBEParser(source: String) : Parser(source) {
                     it.qsz,
                     it.jsz,
                     1,
-                    0f,
-                    "",
-                    "",
-                    ""
                 )
             )
         }

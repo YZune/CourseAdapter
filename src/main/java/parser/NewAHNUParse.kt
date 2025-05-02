@@ -4,7 +4,7 @@ import Common
 import bean.Course
 import org.jsoup.Jsoup
 
-class NewAHNUParser(source: String) : Parser(source) {
+class NewAHNUParser(source: String) : Parser() {
     override fun generateCourseList(): List<Course> {
         val courseList = arrayListOf<Course>()
         val doc = Jsoup.parse(source)
@@ -86,7 +86,7 @@ class NewAHNUParser(source: String) : Parser(source) {
                                 endNode = endNode,
                                 startWeek = startWeek,
                                 endWeek = endWeek,
-                                type = 0
+                                type = 0,
                             )
                         )
                     }

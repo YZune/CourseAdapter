@@ -6,7 +6,7 @@ import org.jsoup.Jsoup
 import parser.Parser
 
 // 暨南大学
-class JNUParser(source: String) : Parser(source) {
+class JNUParser(source: String) : Parser() {
     override fun generateCourseList(): List<Course> {
         val courseList = arrayListOf<Course>()
 
@@ -43,8 +43,8 @@ class JNUParser(source: String) : Parser(source) {
                 }
                 courseName = str.substringAfter("课程：").substringBeforeLast('(')
                 val c = Course(
-                    name = courseName, day = i + 1, room = room, teacher = "", startNode = j,
-                    endNode = j, startWeek = 1, endWeek = 18, type = type
+                    name = courseName, day = i + 1, room = room, startNode = j, endNode = j,
+                    startWeek = 1, endWeek = 18, type = type,
                 )
                 if (courseList.isNotEmpty() && Common.judgeContinuousCourse(courseList.last(), c)) {
                     courseList.last().endNode++

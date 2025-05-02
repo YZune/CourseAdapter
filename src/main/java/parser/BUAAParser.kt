@@ -17,7 +17,7 @@ import parser.Parser
  * 解析了POST(https://byxt.buaa.edu.cn/jwapp/sys/homeapp/api/home/student/getMyScheduleDetail.do)的返回结果(json)
  */
 
-class BUAAParser(source: String) : Parser(source) {
+class BUAAParser(source: String) : Parser() {
     private val teacherAndWeekRegex = Regex("""^(.+)\[(\d+)-(\d+)周(?:\(([单双])\))?]$""")
     override fun getNodes(): Int {
         return 14
@@ -109,7 +109,7 @@ class BUAAParser(source: String) : Parser(source) {
                 credit = courseItem.credit.toFloat(),
                 note = courseItem.titleDetail[8],
                 startTime = courseItem.beginTime,
-                endTime = courseItem.endTime
+                endTime = courseItem.endTime,
             )
             result.add(course)
         }

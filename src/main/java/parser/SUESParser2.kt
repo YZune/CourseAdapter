@@ -11,7 +11,7 @@ import main.java.exception.GetTermDataErrorException
 import org.jsoup.Jsoup
 import parser.Parser
 
-class SUESParser2(source: String) : Parser(source) {
+class SUESParser2(source: String) : Parser() {
 
     //按照 Cookie 值判断是否使用 WebVPN
     private val baseURL =
@@ -162,18 +162,18 @@ class SUESParser2(source: String) : Parser(source) {
                         arrayListOf(
                             Course(
                                 name = it.asJsonObject.get("courseName").asString,
+                                day = it.asJsonObject.get("weekday").asInt,
+                                room = it.asJsonObject.get("room").asString,
                                 teacher = it.asJsonObject.getAsJsonArray("teachers").map { it.asString }
                                     .joinToString(" "),
-                                room = it.asJsonObject.get("room").asString,
                                 startNode = startNode,
                                 endNode = 5,
                                 startWeek = week.start,
                                 endWeek = week.end,
                                 type = week.type,
-                                day = it.asJsonObject.get("weekday").asInt,
+                                credit = it.asJsonObject.get("credits").asFloat,
                                 note = it.asJsonObject.get("lessonRemark")
                                     .let { n -> if (n.isJsonNull) "" else n.asString },
-                                credit = it.asJsonObject.get("credits").asFloat,
                                 startTime = getTime(
                                     it.asJsonObject.get("room").asString,
                                     startNode, false,
@@ -182,21 +182,21 @@ class SUESParser2(source: String) : Parser(source) {
                                 endTime = getTime(
                                     it.asJsonObject.get("room").asString,
                                     5, true, "12:20"
-                                )
+                                ),
                             ), Course(
                                 name = it.asJsonObject.get("courseName").asString,
+                                day = it.asJsonObject.get("weekday").asInt,
+                                room = it.asJsonObject.get("room").asString,
                                 teacher = it.asJsonObject.getAsJsonArray("teachers").map { it.asString }
                                     .joinToString(" "),
-                                room = it.asJsonObject.get("room").asString,
                                 startNode = 6,
                                 endNode = endNode,
                                 startWeek = week.start,
                                 endWeek = week.end,
                                 type = week.type,
-                                day = it.asJsonObject.get("weekday").asInt,
+                                credit = it.asJsonObject.get("credits").asFloat,
                                 note = it.asJsonObject.get("lessonRemark")
                                     .let { n -> if (n.isJsonNull) "" else n.asString },
-                                credit = it.asJsonObject.get("credits").asFloat,
                                 startTime = getTime(
                                     it.asJsonObject.get("room").asString,
                                     6, false, "13:20"
@@ -205,25 +205,25 @@ class SUESParser2(source: String) : Parser(source) {
                                     it.asJsonObject.get("room").asString,
                                     endNode, true,
                                     it.asJsonObject.get("endTime").asString
-                                )
+                                ),
                             )
                         )
                     } else {
                         arrayListOf(
                             Course(
                                 name = it.asJsonObject.get("courseName").asString,
+                                day = it.asJsonObject.get("weekday").asInt,
+                                room = it.asJsonObject.get("room").asString,
                                 teacher = it.asJsonObject.getAsJsonArray("teachers").map { it.asString }
                                     .joinToString(" "),
-                                room = it.asJsonObject.get("room").asString,
                                 startNode = startNode,
                                 endNode = endNode,
                                 startWeek = week.start,
                                 endWeek = week.end,
                                 type = week.type,
-                                day = it.asJsonObject.get("weekday").asInt,
+                                credit = it.asJsonObject.get("credits").asFloat,
                                 note = it.asJsonObject.get("lessonRemark")
                                     .let { n -> if (n.isJsonNull) "" else n.asString },
-                                credit = it.asJsonObject.get("credits").asFloat,
                                 startTime = getTime(
                                     it.asJsonObject.get("room").asString,
                                     startNode, false,
@@ -233,7 +233,7 @@ class SUESParser2(source: String) : Parser(source) {
                                     it.asJsonObject.get("room").asString,
                                     endNode, true,
                                     it.asJsonObject.get("endTime").asString
-                                )
+                                ),
                             )
                         )
                     }

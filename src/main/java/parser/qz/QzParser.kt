@@ -4,7 +4,7 @@ import bean.Course
 import org.jsoup.Jsoup
 import parser.Parser
 
-open class QzParser(source: String) : Parser(source) {
+open class QzParser(source: String) : Parser() {
 
     private val sundayFirstDayMap = arrayOf(0, 7, 1, 2, 3, 4, 5, 6)
     private var sundayFirst = false
@@ -48,11 +48,11 @@ open class QzParser(source: String) : Parser(source) {
             }
             courseList.add(
                 Course(
-                    name = courseName, room = room,
-                    teacher = teacher, day = day,
+                    name = courseName, day = day,
+                    room = room, teacher = teacher,
                     startNode = node, endNode = node + 1,
                     startWeek = startWeek, endWeek = endWeek,
-                    type = type
+                    type = type,
                 )
             )
         }

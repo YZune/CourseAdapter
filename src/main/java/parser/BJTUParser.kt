@@ -9,7 +9,7 @@ import java.io.File
 研究生可能不通用
  */
 
-class BJTUParser(source: String) : Parser(source) {
+class BJTUParser(source: String) : Parser() {
 
     private val regexCourseLine = Regex("\\w{7}\\s\\S+\\s[^\\[]+\\[.]\\s[^A-Z]+\\w{5}")
     private val regexClassName = Regex("]\\s.+\\s\\[")
@@ -73,15 +73,15 @@ class BJTUParser(source: String) : Parser(source) {
                         if (className != "")
                             result.add(
                                     Course(
-                                            name = className,
-                                            day = weekdayNo,
-                                            room = classRoom,
-                                            teacher = classTeacher,
-                                            startNode = timeNo,
-                                            endNode = timeNo,
-                                            type = type,
-                                            startWeek = startWeek,
-                                            endWeek = endWeek
+                                        name = className,
+                                        day = weekdayNo,
+                                        room = classRoom,
+                                        teacher = classTeacher,
+                                        startNode = timeNo,
+                                        endNode = timeNo,
+                                        startWeek = startWeek,
+                                        endWeek = endWeek,
+                                        type = type,
                                     )
                             )
 

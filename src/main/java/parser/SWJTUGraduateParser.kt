@@ -21,7 +21,7 @@ Contact: zoruasama@qq.com
  */
 
 
-class SWJTUGraduateParser(source: String) : Parser(source) {
+class SWJTUGraduateParser(source: String) : Parser() {
     override fun getNodes(): Int = 11
 
     override fun getTableName(): String = "西南交通大学研究生"
@@ -104,9 +104,9 @@ class SWJTUGraduateParser(source: String) : Parser(source) {
                                     teacher = classTeacher,
                                     startNode = startTime,
                                     endNode = endTime,
-                                    type = type,
                                     startWeek = startWeek,
-                                    endWeek = endWeek
+                                    endWeek = endWeek,
+                                    type = type,
                                 )
                             )
 

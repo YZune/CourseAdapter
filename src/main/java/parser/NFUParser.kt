@@ -7,7 +7,7 @@ import java.util.regex.Pattern
 
 val pattern = Pattern.compile("第[0-9]*周")
 
-class NFUParser(source: String):Parser(source) {
+class NFUParser(source: String):Parser() {
 
     override fun generateCourseList(): List<Course> {
 
@@ -97,11 +97,11 @@ class NFUParser(source: String):Parser(source) {
 
                 courseList.add(
                     Course(
-                        name = name, room = place,
-                        teacher = teacher, day = dayOfWeek,
+                        name = name, day = dayOfWeek,
+                        room = place, teacher = teacher,
                         startNode = startNode, endNode = endNode,
                         startWeek = startWeek, endWeek = endWeek,
-                        type = type
+                        type = type,
                     )
                 )
                 //print("$name  ${startWeek}-${endWeek}周  ${type}  星期${dayOfWeek}  ${startNode}-${endNode}节  ${teacher}  ${place}\n")

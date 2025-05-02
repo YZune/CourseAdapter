@@ -28,7 +28,7 @@ const val fontsEachClass = 10
  * @param pwd 传入密码
  * 河海大学新教务系统
  */
-class HHUParser(private val usr: String, private val pwd: String) : Parser("") {
+class HHUParser(private val usr: String, private val pwd: String) : Parser() {
 
     override fun generateCourseList(): List<Course> {
 
@@ -111,7 +111,7 @@ class HHUParser(private val usr: String, private val pwd: String) : Parser("") {
                                         endNode = endNode.toInt(),
                                         startWeek = startWeek.toInt(),
                                         endWeek = endWeek.toInt(),
-                                        type = 0
+                                        type = 0,
                                     )
                                 )
                             } else {
@@ -126,7 +126,7 @@ class HHUParser(private val usr: String, private val pwd: String) : Parser("") {
                                         endNode = endNode.toInt(),
                                         startWeek = sub.toInt(),
                                         endWeek = sub.toInt(),
-                                        type = 0
+                                        type = 0,
                                     )
                                 )
                             }

@@ -13,5 +13,6 @@ data class Course(
     var credit: Float = 0f,      // 学分
     var note: String = "",       // 备注
     var startTime: String = "",  // 不规则的开始时间，长度必须为5，如"08:08"
-    var endTime: String = ""     // 不规则的结束时间，长度必须为5，如"08:08"
+    var endTime: String = "",     // 不规则的结束时间，长度必须为5，如"08:08"
+    val step: Int
 )

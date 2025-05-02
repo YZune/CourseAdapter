@@ -64,7 +64,7 @@ class YGUParser : Parser {
     }
 
     // 从教务系统获取当前学期 (优先使用这个)
-    constructor(cookie: String) : super("") {
+    constructor(cookie: String) {
         _cookies["Access-Token"] = cookie
         initSemesterYearData()
         initUserData()
@@ -72,7 +72,7 @@ class YGUParser : Parser {
     }
 
     // 传入学期时间
-    constructor(cookie: String, semesterYear: String) : super("") {
+    constructor(cookie: String, semesterYear: String) {
         _cookies["Access-Token"] = cookie
         this._semesterYear = semesterYear
         initUserData()
@@ -182,10 +182,8 @@ class YGUParser : Parser {
                     startWeek,
                     endWeek,
                     type,
-                    0f,  // 没有学分数据
-                    "",
-                    defaultTimeList(southCampus, startNode).startTime,
-                    defaultTimeList(southCampus, endNode).endTime
+                    startTime = defaultTimeList(southCampus, startNode).startTime,  // 没有学分数据
+                    endTime = defaultTimeList(southCampus, endNode).endTime,
                 )
             )
         }

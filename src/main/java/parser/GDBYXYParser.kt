@@ -11,7 +11,7 @@ import java.util.*
 import java.util.regex.Pattern
 
 
-class GDBYXYParser(source: String) : Parser(source) {
+class GDBYXYParser(source: String) : Parser() {
 
     override fun generateCourseList(): List<Course> {
         val list = ArrayList<Course>()
@@ -125,14 +125,14 @@ class GDBYXYParser(source: String) : Parser(source) {
                             if (str.matches(Regex("^[0-9]{1,2}$"))) {
                                 startWeek = str.toInt()
                                 endWeek = str.toInt()
-                                course = Course(name, day, room, teacher, startNode, endNode, startWeek, endWeek, type)
+                                course = Course(name, day, room, teacher, startNode, endNode, startWeek, endWeek, type,)
                                 list.add(course)
                             } else {
                                 //字符串去空格并被"-"分割
                                 val strArray = str.trim().split("-".toRegex()).toTypedArray()
                                 startWeek = strArray[0].toInt()
                                 endWeek = strArray[1].toInt()
-                                course = Course(name, day, room, teacher, startNode, endNode, startWeek, endWeek, type)
+                                course = Course(name, day, room, teacher, startNode, endNode, startWeek, endWeek, type,)
                                 list.add(course)
                             }
                         }

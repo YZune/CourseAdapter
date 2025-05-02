@@ -5,7 +5,7 @@ import parser.Parser
 import java.util.*
 
 
-class HUNNUParser(source: String?) : Parser(source!!) {
+class HUNNUParser(source: String?) : Parser() {
 
 
     /*
@@ -246,7 +246,7 @@ class HUNNUParser(source: String?) : Parser(source!!) {
             j--
         }
         if (j <= 0) {
-            courseAdd = Course(name, day, room, teacher, startNode, endNode, startWeek, endWeek, type, credit)
+            courseAdd = Course(name, day, room, teacher, startNode, endNode, startWeek, endWeek, type, credit,)
             courseList.add(courseAdd)
             return
         }
@@ -263,7 +263,7 @@ class HUNNUParser(source: String?) : Parser(source!!) {
                 }
             } else {
                 if (startWeek != -1) {
-                    courseAdd = Course(name, day, room, teacher, startNode, endNode, startWeek, endWeek, type, credit)
+                    courseAdd = Course(name, day, room, teacher, startNode, endNode, startWeek, endWeek, type, credit,)
                     courseList.add(courseAdd)
                     startWeek = -1
                 }
@@ -271,7 +271,7 @@ class HUNNUParser(source: String?) : Parser(source!!) {
         }
 
         if (startWeek != -1) {
-            courseAdd = Course(name, day, room, teacher, startNode, endNode, startWeek, endWeek, type, credit)
+            courseAdd = Course(name, day, room, teacher, startNode, endNode, startWeek, endWeek, type, credit,)
             courseList.add(courseAdd)
             startWeek = -1
         }

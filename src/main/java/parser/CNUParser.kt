@@ -12,7 +12,7 @@ import parser.Parser
  * @version 1.0
  * @date 2023-08-28
  */
-class CNUParser(source: String) : Parser(source) {
+class CNUParser(source: String) : Parser() {
 
     override fun generateCourseList(): List<Course> {
         val courseList = arrayListOf<Course>()
@@ -46,7 +46,7 @@ class CNUParser(source: String) : Parser(source) {
                             endNode = endNode,
                             startWeek = startWeek,
                             endWeek = endWeek,
-                            type = 0
+                            type = 0,
                         )
                     )
                 }

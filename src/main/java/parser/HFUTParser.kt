@@ -5,7 +5,7 @@ import com.google.gson.Gson
 import main.java.bean.HFUTCourse
 import parser.Parser
 
-class HFUTParser(sourse : String) : Parser(sourse) {
+class HFUTParser(sourse : String) : Parser() {
     override fun generateCourseList(): List<Course> {
         val courseList = ArrayList<Course>()
         val datumResponse = Gson().fromJson(source, HFUTCourse::class.java)
@@ -67,17 +67,17 @@ class HFUTParser(sourse : String) : Parser(sourse) {
 
             courseList.add(Course(
                 name = scheduleid,
+                day = day,
                 room = room,
-                startTime = starttime,
-                endTime = endtimes,
-                type = 0,
                 teacher = person,
-                note = "人数:${periods} 类型:${lessonType}",
+                startNode = startNode,
+                endNode = endNode,
                 startWeek = week,
                 endWeek = week,
-                day = day,
-                startNode = startNode,
-                endNode = endNode
+                type = 0,
+                note = "人数:${periods} 类型:${lessonType}",
+                startTime = starttime,
+                endTime = endtimes,
             ))
         }
 

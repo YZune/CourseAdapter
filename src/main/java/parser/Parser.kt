@@ -7,7 +7,7 @@ import bean.CourseDetailBean
 import main.java.Generator
 import main.java.bean.TimeTable
 
-abstract class Parser(val source: String) {
+abstract class Parser() {
 
     private val _baseList: ArrayList<CourseBaseBean> = arrayListOf()
     private val _detailList: ArrayList<CourseDetailBean> = arrayListOf()

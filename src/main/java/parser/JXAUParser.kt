@@ -5,7 +5,7 @@ import bean.Course
 import org.jsoup.Jsoup
 import parser.Parser
 
-class JXAUParser(source: String) : Parser(source){
+class JXAUParser(source: String) : Parser() {
     override fun generateCourseList(): List<Course> {
         val courseList = arrayListOf<Course>()
         val doc = Jsoup.parse(source)
@@ -39,7 +39,7 @@ class JXAUParser(source: String) : Parser(source){
                         }
                         val c = Course(
                             name = name, day = day, room = room, teacher = teacher, startNode = startNode,
-                            endNode = startNode+1, startWeek = startWeek, endWeek = endWeek, type = 0
+                            endNode = startNode+1, startWeek = startWeek, endWeek = endWeek, type = 0,
                         )
                         courseList.add(c)
                     }

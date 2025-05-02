@@ -12,7 +12,7 @@ import java.text.SimpleDateFormat
 import java.util.Locale
 
 /** A modified version of [SupwisdomParser]. */
-class ECUPLParser(source: String) : Parser(source) {
+class ECUPLParser(source: String) : Parser() {
 
     private val doc = Jsoup.parse(source)
 
@@ -163,7 +163,7 @@ class ECUPLParser(source: String) : Parser(source) {
                     endWeek = weekBean.end,
                     type = weekBean.type,
                     credit = credit,
-                    note = note,
+                    note = note,,
                 )
             }
         }

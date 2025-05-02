@@ -5,7 +5,7 @@ import bean.CourseBaseBean
 import bean.CourseDetailBean
 import parser.Parser
 
-class ZjvtitParser(source: String) : Parser(source) {
+class ZjvtitParser(source: String) : Parser() {
 
     override fun generateCourseList(): List<Course> {
         val course: MutableList<Course> = mutableListOf()
@@ -113,7 +113,8 @@ class ZjvtitParser(source: String) : Parser(source) {
                     name = j.courseName
             }
             course.add(
-                Course(name,
+                Course(
+                    name,
                     i.day,
                     i.room!!,
                     i.teacher!!,
@@ -121,7 +122,7 @@ class ZjvtitParser(source: String) : Parser(source) {
                     i.startNode+i.step-1,
                     i.startWeek,
                     i.endWeek,
-                    i.type
+                    i.type,
                 )
             )
         }

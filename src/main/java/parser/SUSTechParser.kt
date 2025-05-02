@@ -13,7 +13,7 @@ class SUSTechParser(
     private val pwd: String,
     private val semesterYear: String,
     private val semesterTerm: String
-) : Parser("") {
+) : Parser() {
 
     override fun generateCourseList(): List<Course> {
         val userAgent =
@@ -153,7 +153,7 @@ class SUSTechParser(
                     startWeek,
                     endWeek,
                     type,
-                    note = noteCourseClass
+                    note = noteCourseClass,
                 )
             )
         }

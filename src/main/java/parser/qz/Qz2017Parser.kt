@@ -7,7 +7,7 @@ import parser.Parser
 import java.io.File
 
 // 华南农业大学
-class Qz2017Parser(source: String) : Parser(source) {
+class Qz2017Parser(source: String) : Parser() {
 
     private val sundayFirstDayMap = arrayOf(7, 1, 2, 3, 4, 5, 6)
 
@@ -87,7 +87,7 @@ class Qz2017Parser(source: String) : Parser(source) {
                                 day = if (sundayFirst) sundayFirstDayMap[dayIndex] else dayIndex + 1,
                                 room = room,
                                 teacher = teacher, startNode = start, endNode = end,
-                                startWeek = startWeek, endWeek = endWeek, type = type
+                                startWeek = startWeek, endWeek = endWeek, type = type,
                             )
                         )
                     }

@@ -5,7 +5,7 @@ import org.jsoup.Jsoup
 import parser.Parser
 import java.io.File
 
-class JinZhiParser(source: String) : Parser(source) {
+class JinZhiParser(source: String) : Parser() {
 
     override fun generateCourseList(): List<Course> {
         val courseList = arrayListOf<Course>()
@@ -82,9 +82,9 @@ class JinZhiParser(source: String) : Parser(source) {
                     }
                     courseList.add(
                         Course(
-                            name = courseName, teacher = teacher, room = room,
-                            startWeek = startWeek, endWeek = endWeek,
-                            startNode = start, endNode = end, type = type, day = day
+                            name = courseName, day = day, room = room,
+                            teacher = teacher, startNode = start,
+                            endNode = end, startWeek = startWeek, endWeek = endWeek, type = type,
                         )
                     )
                 }

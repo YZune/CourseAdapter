@@ -17,7 +17,7 @@ public class GDEIParser extends Parser {
 
     Document document;
     public GDEIParser(@NotNull String source) {
-        super(source);
+        super();
         document = Jsoup.parse(source);
     }
 
@@ -65,13 +65,13 @@ public class GDEIParser extends Parser {
                 //eg:线性代数 1-12 周 (第1,2节) 22软件工程C (30 人) 花教610 (HDJX004900) 王森洪
                 courseArrayList.add(new Course(elementInfos.get(0).text(), i, RoomParser(elementInfos.get(3).text()),
                         elementInfos.get(4).text(), time.get(2), time.get(3), time.get(0),
-                        time.get(1), 0, 0f, elementInfos.get(2).text(), "", ""));
+                        time.get(1), 0, 0f, elementInfos.get(2).text(), "", "", ));
 
                 if (elementInfos.size()>5){
                     time = TimeParser(elementInfos.get(6).text());
                     courseArrayList.add(new Course(elementInfos.get(5).text(), i, RoomParser(elementInfos.get(8).text()),
                             elementInfos.get(9).text(), time.get(2), time.get(3), time.get(0),
-                            time.get(1), 0, 0f, elementInfos.get(7).text(), "", ""));
+                            time.get(1), 0, 0f, elementInfos.get(7).text(), "", "", ));
                 }
             }
         }

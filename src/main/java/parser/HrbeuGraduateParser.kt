@@ -8,7 +8,7 @@ import parser.Parser
  *
  * 仅根据哈尔滨工程大学研究生院课表解析而来，不代表全部可用
  */
-class HrbeuGraduateParser(source: String) : Parser(source) {
+class HrbeuGraduateParser(source: String) : Parser() {
     private val moreTeacher = "一班多师"
     private val brTrimRegex = Regex("(^<br>)|(<br>$)")
     private val numNodeRegex = Regex("(\\d+)(-(\\d+))?")
@@ -87,7 +87,7 @@ class HrbeuGraduateParser(source: String) : Parser(source) {
         return mergeInterval(allWeekList).map { (startWeek, endWeek) ->
             Course(
                 splitEnd[0], dayIndex, splitEnd[4], teacher, startNode, endNode,
-                startWeek, endWeek, 0, 0f, split.subList(5, split.size).joinToString()
+                startWeek, endWeek, 0, note = split.subList(5, split.size).joinToString(),
             )
         }.toList()
     }

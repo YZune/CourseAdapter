@@ -4,7 +4,7 @@ import Common
 import bean.Course
 import org.jsoup.Jsoup
 
-class OldQzParser(source: String) : Parser(source) {
+class OldQzParser(source: String) : Parser() {
 
     override fun generateCourseList(): List<Course> {
         val courseList = arrayListOf<Course>()
@@ -43,11 +43,11 @@ class OldQzParser(source: String) : Parser(source) {
 
                         courseList.add(
                             Course(
-                                name = courseName, room = room,
-                                teacher = teacher, day = day,
+                                name = courseName, day = day,
+                                room = room, teacher = teacher,
                                 startNode = startNode, endNode = endNode,
                                 startWeek = startWeek, endWeek = endWeek,
-                                type = 0
+                                type = 0,
                             )
                         )
                     }

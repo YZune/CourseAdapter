@@ -5,7 +5,7 @@ import org.jsoup.Jsoup
 import parser.Parser
 
 // 华东交大
-class ECJTUParser(source: String) : Parser(source) {
+class ECJTUParser(source: String) : Parser() {
     override fun generateCourseList(): List<Course> {
         val courseList = arrayListOf<Course>()
         val doc = Jsoup.parse(source)
@@ -73,7 +73,7 @@ class ECJTUParser(source: String) : Parser(source) {
                                     name = courseName, day = day, room = room,
                                     teacher = teacher, startNode = startNode,
                                     endNode = endNode, startWeek = startWeek,
-                                    endWeek = endWeek, type = type
+                                    endWeek = endWeek, type = type,
                                 )
                             )
 

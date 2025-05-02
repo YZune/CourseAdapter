@@ -14,7 +14,7 @@ import java.io.IOException
  * 华中科技大学微校园
  * @link https://mhub.hust.edu.cn/kbPageController/by-course
  */
-class HUSTParser(source: String) : Parser(source = source) {
+class HUSTParser(source: String) : Parser() {
     override fun generateCourseList(): List<Course> {
         val doc = Jsoup.parse(source)
         val list = doc.getElementsByClass("main-page-block").first() // Get Course List
@@ -64,7 +64,7 @@ class HUSTParser(source: String) : Parser(source = source) {
                             startWeek = startWeek,
                             endWeek = endWeek,
                             type = 0,
-                            note = "开课对象：$courseObject"
+                            note = "开课对象：$courseObject",
                         )
                     )
                 }

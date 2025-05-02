@@ -5,7 +5,7 @@ import bean.Course
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Element
 
-class UrpParser(source: String) : Parser(source) {
+class UrpParser(source: String) : Parser() {
 
     override fun generateCourseList(): List<Course> {
         val courseList = arrayListOf<Course>()
@@ -94,11 +94,11 @@ class UrpParser(source: String) : Parser(source) {
                     Common.weekIntList2WeekBeanList(weekList).forEach { weekBean ->
                         courseList.add(
                             Course(
-                                name = courseName, room = room,
-                                teacher = teacher, day = day,
+                                name = courseName, day = day,
+                                room = room, teacher = teacher,
                                 startNode = startNode, endNode = startNode + step - 1,
                                 startWeek = weekBean.start, endWeek = weekBean.end,
-                                type = weekBean.type
+                                type = weekBean.type,
                             )
                         )
                     }
@@ -122,11 +122,11 @@ class UrpParser(source: String) : Parser(source) {
                         }
                         courseList.add(
                             Course(
-                                name = courseName, room = room,
-                                teacher = teacher, day = day,
+                                name = courseName, day = day,
+                                room = room, teacher = teacher,
                                 startNode = startNode, endNode = startNode + step - 1,
                                 startWeek = startWeek, endWeek = endWeek,
-                                type = type
+                                type = type,
                             )
                         )
                     }

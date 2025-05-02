@@ -4,7 +4,7 @@ import bean.Course
 import org.jsoup.Jsoup
 import parser.Parser
 
-class ECNUParser(source: String) : Parser(source) {
+class ECNUParser(source: String) : Parser() {
     override fun generateCourseList(): List<Course> {
         val courseList = arrayListOf<Course>()
         val document = Jsoup.parse(source)
@@ -78,9 +78,7 @@ class ECNUParser(source: String) : Parser(source) {
                         endNode = section,
                         startWeek = week,
                         endWeek = week,
-                        type = 0,
-                        credit = 0f,
-                        note = "",
+                        type = 0,,
                     ))
                 }
             }

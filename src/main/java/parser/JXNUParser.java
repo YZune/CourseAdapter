@@ -22,7 +22,7 @@ public class JXNUParser extends Parser {
     Document doc;
 
     public JXNUParser(@NotNull String source) {
-        super(source);
+        super();
         this.source = source;
         doc = Jsoup.parse(source);
     }
@@ -86,7 +86,7 @@ public class JXNUParser extends Parser {
         //本方法中只填入 name、room、teacher
         //startWeek、endWeek、credit 在此 html 中获取不到
         return new Course(name, 0, room, teacher,
-                0, 0, 1, 20, 0, 0f, "", "", "");
+                0, 0, 1, 20, 0, 0f, "", "", "", );
     }
 
     private int getStartNode(int row) {

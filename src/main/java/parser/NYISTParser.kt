@@ -6,7 +6,7 @@ import org.jsoup.Jsoup
 import parser.Parser
 import java.io.File
 
-class NYISTParser(source: String) : Parser(source) {
+class NYISTParser(source: String) : Parser() {
     override fun generateCourseList(): List<Course> {
         val courseList = arrayListOf<Course>()
         val doc = Jsoup.parse(source)
@@ -45,9 +45,11 @@ class NYISTParser(source: String) : Parser(source) {
                     val weeks=newit.substringAfter("[").substringBefore("]").split("-")
                     val startWeek = weeks.first().toInt()
                     val endWeek = weeks.last().toInt()
-                    courseList.add(Course(name = courseName, day = day, room = room, teacher = teacher,
+                    courseList.add(Course(
+                        name = courseName, day = day, room = room, teacher = teacher,
                         startNode = startNode, endNode = endNode, startWeek = startWeek, endWeek = endWeek,
-                        type = type))
+                        type = type,
+                    ))
                 }
             }
         }

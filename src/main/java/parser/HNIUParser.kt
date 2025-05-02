@@ -4,7 +4,7 @@ import bean.Course
 import org.jsoup.Jsoup
 
 // 湖南信息职业技术学院
-class HNIUParser(source: String) : Parser(source) {
+class HNIUParser(source: String) : Parser() {
 
     override fun generateCourseList(): List<Course> {
         val courseList = arrayListOf<Course>()
@@ -89,11 +89,11 @@ class HNIUParser(source: String) : Parser(source) {
 
             courseList.add(
                 Course(
-                    name = courseName, room = room,
-                    teacher = teacher, day = day,
+                    name = courseName, day = day,
+                    room = room, teacher = teacher,
                     startNode = startNode, endNode = startNode + step - 1,
                     startWeek = startWeek, endWeek = endWeek,
-                    type = 0
+                    type = 0,
                 )
             )
         }

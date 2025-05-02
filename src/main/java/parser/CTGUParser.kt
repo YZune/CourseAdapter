@@ -8,7 +8,7 @@ import java.util.regex.Pattern
 import kotlin.io.path.readText
 
 
-class CTGUParser(source:String) : Parser(source) {
+class CTGUParser(source:String) : Parser() {
     private val chineseDayMap = HashMap<String, Int>()
     private val courseTypeMap = HashMap<String, Int>()
     private val courseClockStartMap = HashMap<String, String>()
@@ -142,7 +142,7 @@ class CTGUParser(source:String) : Parser(source) {
                     type = courseType ?: 0,
                     credit = credit,
                     startTime = "$startTime",
-                    endTime = "$endTime",
+                    endTime = "$endTime",,
                 )
             )
         }

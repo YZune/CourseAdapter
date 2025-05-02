@@ -39,7 +39,7 @@ Notice:
 2. 缺少不连续周的识别
 **/
 
-class SHTechParser2024(source: String) : Parser(source) {
+class SHTechParser2024(source: String) : Parser() {
 
 
     override fun getNodes(): Int = 13
@@ -124,7 +124,7 @@ class SHTechParser2024(source: String) : Parser(source) {
                         endWeek=it.second,
                         type=typeOfCourse,
                         startTime=timeList[row - 1].startTime,
-                        endTime=timeList[row - 1].endTime,
+                        endTime=timeList[row - 1].endTime,,
                     )
                 )
 

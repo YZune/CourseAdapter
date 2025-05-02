@@ -12,7 +12,7 @@ import java.util.regex.Pattern
 * @author mrwoowoo
 * @description 江西农业大学接口版倒入，内容更完整
  */
-class JXAUJkParser(private val username:String, private val password:String) : Parser("") {
+class JXAUJkParser(private val username:String, private val password:String) : Parser() {
     override fun generateCourseList(): List<Course> {
         val courseList = arrayListOf<Course>()
 
@@ -57,7 +57,7 @@ class JXAUJkParser(private val username:String, private val password:String) : P
                 }
                 val c = Course(
                     name = name, day = day, room = room, teacher = teacher, startNode = startNode,
-                    endNode = endNode, startWeek = startWeek, endWeek = endWeek, type = 0
+                    endNode = endNode, startWeek = startWeek, endWeek = endWeek, type = 0,
                 )
                 courseList.add(c)
             }

@@ -6,7 +6,7 @@ import org.jsoup.nodes.Document
 import org.jsoup.nodes.Element
 import org.jsoup.select.Elements
 
-class SITParser(source: String) : Parser(source) {
+class SITParser(source: String) : Parser() {
 
     private fun isBlankWithoutIndex(elements: Elements): Boolean {
         val str = StringBuffer()
@@ -120,7 +120,7 @@ class SITParser(source: String) : Parser(source) {
         // 将课程序号与老师名称合并到一个teacher属性中
         // val teacher = courseInfos[3] + ' ' + courseInfos[4]
         val teacher = courseInfos[4]
-        return Course(name, day, room, teacher, startNode, endNode, startWeek, endWeek, type)
+        return Course(name, day, room, teacher, startNode, endNode, startWeek, endWeek, type,)
     }
 
     class WeekParser(val source: String) {

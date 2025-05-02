@@ -7,7 +7,7 @@ import parser.Parser
 import java.io.File
 
 // 青果正选结果解析
-class KingosoftZXParser(source: String) : Parser(source) {
+class KingosoftZXParser(source: String) : Parser() {
 
     override fun generateCourseList(): List<Course> {
         val courseList = arrayListOf<Course>()
@@ -56,9 +56,11 @@ class KingosoftZXParser(source: String) : Parser(source) {
                         val startWeek = weeks.first().toInt()
                         val endWeek = weeks.last().toInt()
 
-                        courseList.add(Course(name = courseName, day = day, room = room, teacher = teacher,
-                                startNode = startNode, endNode = endNode, startWeek = startWeek, endWeek = endWeek,
-                                type = type, credit = credit))
+                        courseList.add(Course(
+                            name = courseName, day = day, room = room, teacher = teacher,
+                            startNode = startNode, endNode = endNode, startWeek = startWeek, endWeek = endWeek,
+                            type = type, credit = credit,
+                        ))
                     }
                 }
             }

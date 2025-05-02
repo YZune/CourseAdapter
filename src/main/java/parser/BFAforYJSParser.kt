@@ -14,7 +14,7 @@ import org.jsoup.Jsoup
  */
 
 //北京电影学院-研究生教育管理系统
-class BFAforYJSParser(source: String) : Parser(source) {
+class BFAforYJSParser(source: String) : Parser() {
     var maxWeek = 1 // 学期最大周数
 
     // 课表名称，以“北京电影学院+当前学期”命名
@@ -30,7 +30,7 @@ class BFAforYJSParser(source: String) : Parser(source) {
     // 学期课程周数
     override fun getMaxWeek(): Int = maxWeek
 
-    // 上课时间表
+    // 学期课程周数
     override fun generateTimeTable(): TimeTable {
         return TimeTable(
             name = "北京电影学院", timeList = listOf(
@@ -102,17 +102,17 @@ class BFAforYJSParser(source: String) : Parser(source) {
                     // 创建课程对象并添加到课程列表
                     courseList.add(
                         Course(
-                            day = weekday,
                             name = courseName,
-                            note = note,
-                            teacher = teacher,
+                            day = weekday,
                             room = classroom,
-                            startWeek = startWeek,
-                            endWeek = endWeek,
+                            teacher = teacher,
                             startNode = startNode,
                             endNode = endNode,
+                            startWeek = startWeek,
+                            endWeek = endWeek,
+                            type = 0,
                             credit = credit,
-                            type = 0
+                            note = note,
                         )
                     )
                 }

@@ -9,7 +9,7 @@ import parser.Parser
 /**
  * 吉林大学研究生教务系统
  */
-class JLUParser(source:String):Parser(source) {
+class JLUParser(source:String):Parser() {
     override fun generateCourseList(): List<Course> {
         val result = arrayListOf<Course>()
         val gson = Gson()
@@ -74,7 +74,7 @@ class JLUParser(source:String):Parser(source) {
                 "单" -> 1
                 "双" -> 2
                 else -> 0
-            }
+            },
         )
     }
 }

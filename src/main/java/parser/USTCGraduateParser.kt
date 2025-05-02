@@ -26,7 +26,7 @@ P***5	***理	2~3,6~10;6	***	G***8: 5(18:40~21:55);G***8: *(18:40~21:55)
  */
 
 
-class USTCGraduateParser(source: String) : Parser(source) {
+class USTCGraduateParser(source: String) : Parser() {
     override fun getNodes(): Int = generateTimeTable().timeList.size
 
     override fun getTableName(): String = "中国科学技术大学研究生"
@@ -152,12 +152,12 @@ class USTCGraduateParser(source: String) : Parser(source) {
                             teacher = teacher,
                             startNode = startNode,
                             endNode = endNode,
-                            startTime = startTime,
-                            endTime = endTime,
                             startWeek = weeksArr[i],
                             endWeek = weeksArr[i + 1],
+                            type = 0,
                             note = note,
-                            type = 0
+                            startTime = startTime,
+                            endTime = endTime,
                         )
                     )
                 }

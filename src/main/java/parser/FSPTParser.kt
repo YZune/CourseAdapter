@@ -72,11 +72,11 @@ class FSPTParser(source: String) : QzParser(source) {
             }
             courseList.add(
                 Course(
-                    name = courseName, room = room,
-                    teacher = teacher, day = day,
+                    name = courseName, day = day,
+                    room = room, teacher = teacher,
                     startNode = node, endNode = node + 1,
                     startWeek = startWeek, endWeek = endWeek,
-                    type = type
+                    type = type,
                 )
             )
         }

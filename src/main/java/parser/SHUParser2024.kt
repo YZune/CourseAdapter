@@ -18,7 +18,7 @@ import org.jsoup.nodes.Element
 // 课程表网页链接 `https://jwxk.shu.edu.cn/xsxk/elective/grablessons?{学期代码}`
 // 登录链接：`https://jwxk.shu.edu.cn/`
 
-class SHUParser2024(source: String) : Parser(source) {
+class SHUParser2024(source: String) : Parser() {
     private val nodeNum = 12
     private val maxWeek = 12
 
@@ -61,32 +61,30 @@ class SHUParser2024(source: String) : Parser(source) {
                     for (week in entry.weeks) {
                         val course = Course(
                             name = courseName,
+                            day = entry.day,
                             room = classRoom,
                             teacher = teacher,
-                            day = entry.day,
                             startNode = entry.startNode,
                             endNode = entry.endNode,
                             startWeek = week,
                             endWeek = week,
                             type = 0,
                             credit = credit,
-                            note = ""
                         )
                         courseList.add(course)
                     }
                 } else {
                     val course = Course(
                         name = courseName,
+                        day = entry.day,
                         room = classRoom,
                         teacher = teacher,
-                        day = entry.day,
                         startNode = entry.startNode,
                         endNode = entry.endNode,
                         startWeek = entry.weeks.first(),
                         endWeek = entry.weeks.last(),
                         type = entry.weekType,
                         credit = credit,
-                        note = ""
                     )
                     courseList.add(course)
                 }
@@ -110,32 +108,30 @@ class SHUParser2024(source: String) : Parser(source) {
                             for (week in entry.weeks) {
                                 val course = Course(
                                     name = courseName,
+                                    day = entry.day,
                                     room = classRoom,
                                     teacher = teacher,
-                                    day = entry.day,
                                     startNode = entry.startNode,
                                     endNode = entry.endNode,
                                     startWeek = week,
                                     endWeek = week,
                                     type = 0,
                                     credit = credit,
-                                    note = ""
                                 )
                                 courseList.add(course)
                             }
                         } else {
                             val course = Course(
                                 name = courseName,
+                                day = entry.day,
                                 room = classRoom,
                                 teacher = teacher,
-                                day = entry.day,
                                 startNode = entry.startNode,
                                 endNode = entry.endNode,
                                 startWeek = entry.weeks.first(),
                                 endWeek = entry.weeks.last(),
                                 type = entry.weekType,
                                 credit = credit,
-                                note = ""
                             )
                             courseList.add(course)
                         }

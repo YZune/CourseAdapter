@@ -38,7 +38,7 @@ public class XAUATParser extends Parser {
     private String startDate;
 
     public XAUATParser(@NotNull String source) {
-        super(source);
+        super();
         jsInitFunc = source.substring(source.indexOf("function init(){"), source.indexOf("};"));
     }
 
@@ -207,7 +207,7 @@ public class XAUATParser extends Parser {
         }
 
         return new Course(name, day, room, teacher, startNode, endNode, startWeek, endWeek, type, 0.0f,
-                "", "", "");
+                "", "", "", );
     }
 
     // 简化上课地址字符串，防止过长在app显示时遮挡

@@ -5,7 +5,7 @@ import bean.ChengFangInfo
 import bean.Course
 import com.google.gson.Gson
 
-class ChengFangParser(source: String) : Parser(source) {
+class ChengFangParser(source: String) : Parser() {
 
     override fun generateCourseList(): List<Course> {
         val courseList = arrayListOf<Course>()
@@ -26,11 +26,11 @@ class ChengFangParser(source: String) : Parser(source) {
             Common.weekIntList2WeekBeanList(weekList).forEach { weekBean ->
                 courseList.add(
                     Course(
-                        name = it.kcmc, room = it.jxcdmcs,
-                        teacher = it.teaxms, day = day,
+                        name = it.kcmc, day = day,
+                        room = it.jxcdmcs, teacher = it.teaxms,
+                        startNode = startNode, endNode = startNode + step - 1,
                         startWeek = weekBean.start, endWeek = weekBean.end,
-                        type = weekBean.type, startNode = startNode,
-                        endNode = startNode + step - 1
+                        type = weekBean.type,
                     )
                 )
             }

@@ -14,7 +14,7 @@ import org.jsoup.Jsoup
  */
 
 
-class HNJMParser(source: String) : Parser(source) {
+class HNJMParser(source: String) : Parser() {
     /*
     //覆写时间表
     override fun generateTimeTable(): TimeTable? {
@@ -97,7 +97,7 @@ class HNJMParser(source: String) : Parser(source) {
                         endNode = endNode,
                         startWeek = startWeek,
                         endWeek = endWeek,
-                        type = 0
+                        type = 0,
                     )
                 )
             }

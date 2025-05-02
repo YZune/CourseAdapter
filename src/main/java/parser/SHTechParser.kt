@@ -8,7 +8,7 @@ import org.jsoup.nodes.Element
 import parser.Parser
 
 
-class SHTechParser(source: String) : Parser(source) {
+class SHTechParser(source: String) : Parser() {
     /**@author mhk
      * @date 20220821
      * @update 20230204
@@ -78,7 +78,7 @@ class SHTechParser(source: String) : Parser(source) {
                     courseWeb.schedule.weekStart,
                     courseWeb.schedule.weekEnd,
                     0,
-                    note = note
+                    note = note,
                 )
             )
         } else {
@@ -101,7 +101,7 @@ class SHTechParser(source: String) : Parser(source) {
                         week.start,
                         week.end,
                         week.type,
-                        note = note
+                        note = note,
                     )
                 )
             }

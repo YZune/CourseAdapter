@@ -8,7 +8,7 @@ import main.java.bean.TimeTable
 import org.jsoup.HttpStatusException
 import org.jsoup.Jsoup
 
-class THUParser(source: String) : Parser(source) {
+class THUParser(source: String) : Parser() {
 
     // 固定数据
 
@@ -147,7 +147,7 @@ class THUParser(source: String) : Parser(source) {
                     endTime = when (courseInfo.time) {
                         "" -> ""
                         else -> courseInfo.time.substringAfter("-").formatTime()
-                    }
+                    },
                 )
                 val weekIntList = parseWeeks(courseInfo.weeks.trim(), totalWeeks)
                 for (it in reschedule) {
@@ -163,10 +163,11 @@ class THUParser(source: String) : Parser(source) {
                             } else {
                                 courseList.add(
                                     course.copy(
-                                        day = it.toDay,
+                                        ,
+                                        day = it.toDay,,,
                                         startWeek = it.toWeek,
                                         endWeek = it.toWeek,
-                                        type = 0
+                                        type = 0,
                                     )
                                 )
                             }
@@ -176,9 +177,10 @@ class THUParser(source: String) : Parser(source) {
                 weekIntList.sort()
                 Common.weekIntList2WeekBeanList(weekIntList).mapTo(courseList) { week ->
                     course.copy(
+                        ,,,,
                         startWeek = week.start,
                         endWeek = week.end,
-                        type = week.type
+                        type = week.type,
                     )
                 }
                 courseInfo = CourseDetails()  // reset

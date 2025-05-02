@@ -24,7 +24,7 @@ import java.util.List;
 
 public class HNZJParser extends Parser {
     public HNZJParser(@NotNull String source) {
-        super(source);
+        super();
     }
 
     @NotNull
@@ -132,7 +132,7 @@ public class HNZJParser extends Parser {
                     } else {
                         startWeek = endWeek = Integer.parseInt(weekRange);
                     }
-                    courses.add(new Course(name, day, room, teacher, startNode, endNode, startWeek, endWeek, type, credit, "", "", ""));
+                    courses.add(new Course(name, day, room, teacher, startNode, endNode, startWeek, endWeek, type, credit, "", "", "", ));
                 }
 
             } else {
@@ -143,7 +143,7 @@ public class HNZJParser extends Parser {
                 } else {
                     startWeek = endWeek = Integer.parseInt(weeks);
                 }
-                courses.add(new Course(name, day, room, teacher, startNode, endNode, startWeek, endWeek, type, credit, "", "", ""));
+                courses.add(new Course(name, day, room, teacher, startNode, endNode, startWeek, endWeek, type, credit, "", "", "", ));
             }
 
         }

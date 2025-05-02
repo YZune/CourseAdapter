@@ -10,7 +10,7 @@ import java.time.format.DateTimeFormatter
 import java.util.Locale
 import kotlin.collections.ArrayList
 
-class SUESParser(source: String) : Parser(source) {
+class SUESParser(source: String) : Parser() {
 
     //document.getElementById("main").contentWindow.document.getElementById("contentListFrame").contentWindow
     private val dom = Jsoup.parse(source)
@@ -66,18 +66,18 @@ class SUESParser(source: String) : Parser(source) {
                     res.add(
                         Course(
                             name = e.name,
-                            teacher = e.teacher,
+                            day = e.day,
                             room = e.position,
+                            teacher = e.teacher,
                             startNode = it.first(),
                             endNode = it.last(),
                             startWeek = week.start,
                             endWeek = week.end,
                             type = week.type,
-                            day = e.day,
-                            note = e.note,
                             credit = e.credit,
+                            note = e.note,
                             startTime = e.startTime,
-                            endTime = e.endTime
+                            endTime = e.endTime,
                         )
                     )
                 }

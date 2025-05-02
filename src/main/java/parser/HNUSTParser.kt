@@ -6,7 +6,7 @@ import org.jsoup.Jsoup
 
 // 湖南科技大学
 // 湖南科技大学潇湘学院
-class HNUSTParser(source: String) : Parser(source) {
+class HNUSTParser(source: String) : Parser() {
 
     override fun generateCourseList(): List<Course> {
         val courseList = arrayListOf<Course>()
@@ -46,11 +46,11 @@ class HNUSTParser(source: String) : Parser(source) {
                             val startNode = div.attr("id").split('-')[0].toInt() * 2 - 1
                             courseList.add(
                                 Course(
-                                    name = courseName, teacher = teacher,
-                                    room = room, day = day,
+                                    name = courseName, day = day,
+                                    room = room, teacher = teacher,
                                     startNode = startNode, endNode = startNode + 1,
                                     startWeek = startWeek, endWeek = endWeek,
-                                    type = 0
+                                    type = 0,
                                 )
                             )
                         }

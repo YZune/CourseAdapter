@@ -14,7 +14,7 @@ import java.io.File
 // 辽宁工程技术大学
 // 重庆医科大学
 // 山东商业职业技术学院
-open class SupwisdomParser(source: String) : Parser(source) {
+open class SupwisdomParser(source: String) : Parser() {
 
     open fun getGroup(a: List<String>): String {
         return if (a.size < 7) {
@@ -105,9 +105,15 @@ open class SupwisdomParser(source: String) : Parser(source) {
                 }
                 weekList.forEach { week ->
                     val c = Course(
-                        name = courseName, teacher = teacher, room = room, startNode = timeInfo[1] + 1,
-                        endNode = timeInfo[1] + 1, startWeek = week.start, endWeek = week.end, type = week.type,
-                        day = timeInfo[0] + 1
+                        name = courseName,
+                        day = timeInfo[0] + 1,
+                        room = room,
+                        teacher = teacher,
+                        startNode = timeInfo[1] + 1,
+                        endNode = timeInfo[1] + 1,
+                        startWeek = week.start,
+                        endWeek = week.end,
+                        type = week.type,
                     )
                     courseList.add(c)
                 }

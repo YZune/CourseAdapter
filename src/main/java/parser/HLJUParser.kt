@@ -5,7 +5,7 @@ import bean.Course
 import org.jsoup.Jsoup
 
 // 黑龙江大学的课程表解析器
-class HLJUParser(source: String) : Parser(source) {
+class HLJUParser(source: String) : Parser() {
 
     // 重写generateCourseList方法，用于生成课程列表
     override fun generateCourseList(): List<Course> {
@@ -96,11 +96,12 @@ class HLJUParser(source: String) : Parser(source) {
             if (node && weekIf) {
                 courseList.add(
                     Course(
-                        name = courseName, room = room,
-                        teacher = teacher, day = day,
+                        name = courseName, day = day,
+                        room = room, teacher = teacher,
                         startNode = startNode, endNode = startNode + step - 1,
                         startWeek = startWeek, endWeek = endWeek,
-                        type = type // 设置单双周类型
+                        type = type,
+                        // 设置单双周类型
                     )
                 )
             }

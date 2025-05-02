@@ -12,7 +12,7 @@ import parser.Parser
  * 不是所有类型课表全部适配，比如4节课连上的情况可能有BUG，可以在Github联系我。
  */
 
-class CQUPTParser(source: String) : Parser(source) {
+class CQUPTParser(source: String) : Parser() {
 
     companion object {
         // 我这里课程列表在程序里进行修正后长度就是8，
@@ -66,15 +66,15 @@ class CQUPTParser(source: String) : Parser(source) {
                             }
                             val course = Course(
                                 name = name,
+                                day = dayWeek,
                                 room = room,
                                 teacher = teacher,
-                                credit = credit,
-                                day = dayWeek, // dayWeek 代表星期X
-                                startNode = startNode,
+                                startNode = startNode, // dayWeek 代表星期X
                                 endNode = realEndNode,
-                                type = type,
-                                startWeek = startWeek, // startWeek-endWeek 代表 x周-y周
-                                endWeek = endWeek
+                                startWeek = startWeek,
+                                endWeek = endWeek,
+                                type = type, // startWeek-endWeek 代表 x周-y周
+                                credit = credit,
                             )
                             courseList.add(course)
                         }

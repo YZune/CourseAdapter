@@ -20,7 +20,7 @@ Contact: zoruasama@qq.com
  */
 
 
-class XJTUGraduateParser(source: String) : Parser(source) {
+class XJTUGraduateParser(source: String) : Parser() {
     override fun getNodes(): Int = 11
 
     override fun getTableName(): String = "西安交通大学研究生"
@@ -107,9 +107,9 @@ class XJTUGraduateParser(source: String) : Parser(source) {
                                     teacher = classTeacher,
                                     startNode = startTime,
                                     endNode = endTime,
-                                    type = type,
                                     startWeek = startWeek,
-                                    endWeek = endWeek
+                                    endWeek = endWeek,
+                                    type = type,
                                 )
                             )
 

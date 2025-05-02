@@ -6,7 +6,7 @@ import org.jsoup.Jsoup
 import java.util.regex.Pattern
 
 // 北京师范大学珠海分校
-class BNUZParser(source: String) : Parser(source) {
+class BNUZParser(source: String) : Parser() {
 
     override fun generateCourseList(): List<Course> {
         val courseList = arrayListOf<Course>()
@@ -81,11 +81,11 @@ class BNUZParser(source: String) : Parser(source) {
 
                         courseList.add(
                             Course(
-                                name = courseName, room = room,
-                                teacher = teacher, day = countDay,
+                                name = courseName, day = countDay,
+                                room = room, teacher = teacher,
                                 startNode = node, endNode = node + step - 1,
                                 startWeek = startWeek, endWeek = endWeek,
-                                type = type
+                                type = type,
                             )
                         )
                     }

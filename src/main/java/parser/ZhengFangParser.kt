@@ -4,7 +4,7 @@ import Common
 import bean.Course
 import java.io.File
 
-class ZhengFangParser(source: String, private val type: Int) : Parser(source) {
+class ZhengFangParser(source: String, private val type: Int) : Parser() {
 
     private val brRegex = Regex("(<br>){3,}")
 
@@ -166,9 +166,9 @@ class ZhengFangParser(source: String, private val type: Int) : Parser(source) {
                     name = i.name, day = day, room = i.room ?: "",
                     teacher = i.teacher ?: "", startNode = i.startNode,
                     endNode = i.startNode + time[1] - 1,
-                    type = time[4],
                     startWeek = time[2],
-                    endWeek = time[3]
+                    endWeek = time[3],
+                    type = time[4],
                 )
             )
             if (day == 0) {

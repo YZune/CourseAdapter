@@ -24,7 +24,7 @@ public class HUATParser extends Parser {
     Document document;
 
     public HUATParser(@NotNull String source) {
-        super(source);
+        super();
         document = Jsoup.parse(source);
     }
 
@@ -139,6 +139,6 @@ public class HUATParser extends Parser {
                 new Course(
                         class_name, day_index, class_room,
                         teacher, start_node, end_node,
-                        start_week, end_week, 0, 1f, "", "", ""));
+                        start_week, end_week, 0, 1f, "", "", "", ));
     }
 }

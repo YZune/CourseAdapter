@@ -31,7 +31,7 @@ public class GDBHParser extends Parser {
     private final String cookie;
 
     public GDBHParser(@NotNull String source, String cookie) {
-        super(source);
+        super();
         this.cookie = cookie;
     }
 
@@ -77,7 +77,7 @@ public class GDBHParser extends Parser {
         int startWeek = courseObject.get("startweek").getAsInt();
         int endWeek = courseObject.get("endweek").getAsInt();
         float credit = courseObject.get("xf").getAsFloat();
-        return new Course(name, day, room, teacher, startNode, endNode, startWeek, endWeek, 0, credit, "", "", "");
+        return new Course(name, day, room, teacher, startNode, endNode, startWeek, endWeek, 0, credit, "", "", "", );
     }
 
     private int resolveBeginTime(int seq) {

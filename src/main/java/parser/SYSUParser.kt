@@ -2,7 +2,7 @@ package parser
 
 import bean.Course
 
-class SYSUParser(source: String) : Parser(source) {
+class SYSUParser(source: String) : Parser() {
     override fun generateCourseList(): List<Course> {
         val courseList = ArrayList<Course>()
 
@@ -99,7 +99,7 @@ class SYSUParser(source: String) : Parser(source) {
             endNode = endNode,
             startWeek = startWeek,
             endWeek = endWeek,
-            type = type
+            type = type,
         )
     }
 }

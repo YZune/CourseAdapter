@@ -6,7 +6,7 @@ import bean.CourseDetailBean
 import parser.Parser
 import org.jsoup.Jsoup
 
-class ZPTCParser(source: String) : Parser(source) {
+class ZPTCParser(source: String) : Parser() {
     override fun generateCourseList(): List<Course> {
         val course: MutableList<Course> = mutableListOf()
 
@@ -93,7 +93,7 @@ class ZPTCParser(source: String) : Parser(source) {
                     i.startNode + i.step - 1,
                     i.startWeek,
                     i.endWeek,
-                    i.type
+                    i.type,
                 )
             )
         }

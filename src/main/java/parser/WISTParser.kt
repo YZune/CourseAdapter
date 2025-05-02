@@ -10,7 +10,7 @@ import parser.Parser
  * WISTParser
  * @author Qing90bing
  * 学校：武汉船舶职业技术学院
- * 2025-05-01为止，该学校教务系统为金智教育系统
+ * 2025-05-02为止，该学校教务系统为金智教育系统
  * 因为只是测试自己学院的，不知道其他学院的情况
  * 查询流程：
  * 1.进入教务系统登录地址（统一身份验证）：http://authserver.wspc.edu.cn/authserver/login?service=http%3A%2F%2Fehall.wspc.edu.cn%2Flogin%3Fservice%3Dhttp%3A%2F%2Fehall.wspc.edu.cn%2Fnew%2Findex.html

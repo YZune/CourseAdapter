@@ -10,7 +10,7 @@ fun main() {
     // 建议从项目外引用 html 文件
     // 提交时一定不要上传 html 文件，涉及隐私问题
     // 示例：D:/Download/Programs/WCtest.html
-    val htmlFilePath = "D:/Download/Programs/WCtest.html"
+    val htmlFilePath = "WCtest.html"
     val htmlContent = File(htmlFilePath).readText()
 
     // 2. 初始化解析器并获取课程列表

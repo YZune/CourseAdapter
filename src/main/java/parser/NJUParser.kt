@@ -35,13 +35,15 @@ class NJUParser(source: String) : Parser(source) {
             val unitCell = tr.selectFirst("td.mtt_bgcolor_grey[data-unit]") ?: return@forEach
             val unit = unitCell.attr("data-unit").toInt()
             tr.select("td[data-role=item]").forEach { td ->
-                println(td)
-
                 val item = td.selectFirst(".mtt_arrange_item") ?: return@forEach
 
-                val name    = item.selectFirst(".mtt_item_kcmc")!!.text()
+                val rawName = item.selectFirst(".mtt_item_kcmc")!!.text()
                 val teacher = item.selectFirst(".mtt_item_jxbmc")!!.text()
                 val room    = item.selectFirst(".mtt_item_room")!!.text()
+
+                val name    = rawName
+                    .replace(Regex("^\\S+\\s+"), "")
+                    .replace(Regex("\\d+班\$"), "")
 
                 val courseTime = item.selectFirst(".mtt_item_sksj")!!.text()
 

@@ -8,12 +8,11 @@ import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.system.measureTimeMillis
 
-
 fun main() {
     // ======================== [ ⚙️配置区 - 调试开关 ] ========================
     val enableCourseDetailLog  = true     // 是否打印每门课的详细信息
     val enableConflictCheck    = true     // 是否检查课程冲突
-    val enableWeekSummary      = false     // 是否汇总相同课程的所有周数
+    val enableWeekSummary      = true     // 是否汇总相同课程的所有周数
     val enableRoomSummary      = false     // 是否统计课程使用的所有教室
     val enableDurationSummary  = false     // 是否统计每门课总课时
     val enableTimeSummary      = true     // 是否统计解析课表的总时间
@@ -25,7 +24,7 @@ fun main() {
     // 示例中用了相对路径，Windows 下可能需要修改
     // 建议从项目外引用 html 文件
     // 提交时一定不要上传 html 文件，涉及隐私问题
-    val htmlFilePath = "D:/Download/Programs/WCtest2.html"
+    val htmlFilePath = "D:/Download/Programs/WC23845.html"
     val htmlContent = try {
         File(htmlFilePath).readText()
     } catch (e: IOException) {
@@ -51,7 +50,6 @@ fun main() {
         return
     }
 
-    // ======== 3. 打印课程详情（可配置） ========
     if (enableCourseDetailLog) {
         val groupedCourses = courseList.groupBy {
             listOf(it.name, it.teacher, it.room, it.day, it.startNode, it.endNode)
@@ -60,18 +58,33 @@ fun main() {
         println("\n📚 课程解析详情\n" + "-".repeat(50))
         groupedCourses.values.forEachIndexed { index, group ->
             val sample = group.first()
-            val weeks = group.map { it.startWeek }.sorted()
+
+            // 解析每个课程的周次
+            val weeks = group.flatMap { course ->
+                // 提取原始周次数据
+                val allWeeks = (course.startWeek..course.endWeek).toSet()
+
+                // 判断是否包含单周/双周标记
+                val weekType = course.type // 1为单周，0为不处理单双周
+
+                // 根据类型处理
+                val filteredWeeks = when (weekType) {
+                    1 -> allWeeks.filter { it % 2 == 1 }  // 单周，保留奇数周
+                    0 -> allWeeks // 不做单双周判断，直接保留所有周次
+                    else -> allWeeks.filter { it % 2 == 0 }  // 默认处理为双周，保留偶数周
+                }
+
+                filteredWeeks
+            }.toSet().sorted()
 
             // 说明课程为单周或双周（不强制，仅提示）
             val weekTypeDesc = when (sample.type) {
-                1 -> when {
-                    weeks.all { it % 2 == 1 } -> "（单周）"
-                    weeks.all { it % 2 == 0 } -> "（双周）"
-                    else -> ""
-                }
+                1 -> if (weeks.all { it % 2 == 1 }) "（单周）"
+                else if (weeks.all { it % 2 == 0 }) "（双周）" else ""
                 else -> ""
             }
 
+            // 打印课程详情
             println("🔹 第 ${index + 1} 门课".padEnd(30, '─'))
             println("📓 课程名称 : ${sample.name}")
             println("🧑🏻‍🏫 教师     : ${sample.teacher}")
@@ -89,16 +102,17 @@ fun main() {
     if (enableConflictCheck) {
         println("\n🔍 冲突检测结果\n" + "-".repeat(50))
         val conflicts = mutableListOf<Pair<Course, Course>>()
-        for (i in 0 until courseList.size - 1) {
-            val a = courseList[i]
+        for (i in courseList.indices) {
             for (j in i + 1 until courseList.size) {
+                val a = courseList[i]
                 val b = courseList[j]
-                if (
-                    a.startWeek == b.startWeek &&
-                    a.day == b.day &&
-                    a.startNode <= b.endNode &&
-                    b.startNode <= a.endNode
-                ) {
+
+                // 核心：比较是否为同一周、同一天、时间重叠
+                val sameWeek = a.startWeek == b.startWeek
+                val sameDay = a.day == b.day
+                val timeOverlap = a.startNode <= b.endNode && b.startNode <= a.endNode
+
+                if (sameWeek && sameDay && timeOverlap) {
                     conflicts += a to b
                 }
             }
@@ -126,8 +140,16 @@ fun main() {
 
         courseList.forEach { course ->
             val key = "${course.name}__${course.teacher}"
-            val weeks = (course.startWeek..course.endWeek).toSet()
+            val allWeeks = (course.startWeek..course.endWeek).toSet()
             val room = course.room.trim()
+
+            // 判断是否是单双周
+            val weekType = course.type // 1为单双周，0为不处理单双周
+            val weeks = when (weekType) {
+                1 -> allWeeks.filter { it % 2 == 1 }.toSet()  // 单周，保留奇数周
+                0 -> allWeeks // 不做单双周处理，保留所有周次
+                else -> allWeeks.filter { it % 2 == 0 }.toSet()  // 默认处理为双周，保留偶数周
+            }
 
             // 汇总上课周数
             if (enableWeekSummary) {
@@ -205,13 +227,7 @@ fun main() {
                         val sample = group.first()
 
                         // 确保周次列表只包含有效的整数
-                        val validWeekList = group.mapNotNull {
-                            try {
-                                it.startWeek
-                            } catch (e: NumberFormatException) {
-                                null // 过滤非整数值
-                            }
-                        }.sorted()
+                        val validWeekList = group.flatMap { it.startWeek..it.endWeek }.toSet().sorted()
 
                         // 生成格式化的周次字符串
                         val weekTypeDesc = when (sample.type) {

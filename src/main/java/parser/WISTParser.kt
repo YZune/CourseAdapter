@@ -30,7 +30,6 @@ import parser.Parser
 class WISTParser(private val source: String) : Parser() {
 
     //生成课程列表的核心逻辑从 HTML 中提取课程信息，转换为标准 Course 列表，合并课表时间与周次信息
-
     override fun generateCourseList(): List<Course> {
         val courseList = ArrayList<Course>() // 原始课程列表
         val doc = Jsoup.parse(source) // 解析输入的HTML内容

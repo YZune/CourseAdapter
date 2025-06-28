@@ -1,9 +1,10 @@
-package parser
+package main.java.parser
 
 import bean.Course
 import main.java.bean.TimeDetail
 import main.java.bean.TimeTable
 import org.jsoup.Jsoup
+import parser.Parser
 
 class LNGDParser(source: String) : Parser(source) {
     override fun getNodes(): Int = 12
@@ -19,11 +20,11 @@ class LNGDParser(source: String) : Parser(source) {
                 TimeDetail(5, "13:20", "14:05"),
                 TimeDetail(6, "14:15", "15:00"),
                 TimeDetail(7, "15:10", "15:55"),
-                TimeDetail(8, "16:05", "15:50"),
-                TimeDetail(9, "17:00", "17:45"),
-                TimeDetail(10, "17:55", "18:40"),
-                TimeDetail(11, "18:50", "19:35"),
-                TimeDetail(12, "19:45", "20:30"),
+                TimeDetail(8, "16:05", "16:50"),
+                TimeDetail(9, "17:15", "18:00"),
+                TimeDetail(10, "18:10", "18:55"),
+                TimeDetail(11, "19:05", "19:50"),
+                TimeDetail(12, "20:00", "20:45"),
             )
         )
     }
@@ -32,88 +33,181 @@ class LNGDParser(source: String) : Parser(source) {
         val courseList = arrayListOf<Course>()
 
         var day = 0
-        var room = String()
-        var name = String()
-        var credit = 0f
-        var teacher = ""
 
         val doc = Jsoup.parse(source)
 
-        val id = doc.getElementById("wdkb-kb")
-        val byclass = id.getElementsByClass("kbappTimetableDayColumnRoot")
-        var fragment = ArrayList<String>().toList()
+        when (doc.getElementById("root") != null) {
+            true -> {
+                val id = doc.getElementById("root")
+                val byclass = id.getElementsByClass("kbappTimetableDayColumnRoot___1DlDV")
 
-        byclass.forEach {
-            day += 1
-            it.getElementsByClass("kbappTimetableCourseRenderCourseItem el-popover__reference").eachText().forEach {
-                var startNode = 0
-                var endNode = 0
-                var startWeek = 0
-                var endWeek = 0
-                fragment = it.split(" ").toList()
-                for (i in fragment) {
-                    name = fragment[0]
-                    teacher = "周([\\u4e00-\\u9fa5]+)".toRegex().find(fragment[2])?.let { it1 -> it1.groupValues[1] }.toString()
+                byclass.forEach { dayInfo ->
 
-                    credit = fragment[1].replace("[^0-9]".toRegex(), "").toFloat() / 10
+                    var room: String
+                    var name: String
+                    var credit: Float
+                    var startNode: Int
+                    var endNode: Int
+                    var startWeek: Int
+                    var endWeek: Int
+                    var teacher = String()
 
-                    room = if (fragment[fragment.size - 1].last() == '节') {
-                        ""
-                    } else {
-                        fragment[fragment.size - 1]
+                    day += 1
+                    dayInfo.getElementsByClass("kbappTimetableCourseRenderCourseItem___MgPtp").forEach { classinfo ->
+                        val nc = classinfo.getElementsByClass("title___3o2RH").text().split(" ").toList()
+                        name = nc[0]
+                        credit = nc[1].replace("[^0-9]".toRegex(), "").toFloat() / 10
+                        classinfo.getElementsByClass("kbappTimetableCourseRenderCourseItemInfoText___2Zmwu").forEach { fragment ->
+                            val teacherNodeWeekRoom =
+                                fragment.getElementsByClass("kbappTimetableCourseRenderCourseItemInfoText___2Zmwu").text().split(" ")
+                                    .toList()
+
+                            room = room(teacherNodeWeekRoom)
+
+                            val teacher1 = teacher(teacherNodeWeekRoom.toString())
+
+                            if (teacher1.isNotEmpty()) {
+                                teacher = teacher1
+                            }
+
+                            val n = node(teacherNodeWeekRoom.toString())
+                            val (startNode1, endNode1) = n.split("-").map { it.toInt() }
+                            startNode = startNode1
+                            endNode = endNode1
+
+                            val w = week(teacherNodeWeekRoom.toString())
+                            w.forEach { w ->
+                                if (w.length > 2) {
+                                    val (startWeek1, endWeek1) = w.split("-").map { it.toInt() }
+                                    startWeek = startWeek1
+                                    endWeek = endWeek1
+                                } else {
+                                    if (w.isEmpty()) {
+                                        error("请在学期课表导入")
+                                    }
+                                    startWeek = w.toInt()
+                                    endWeek = w.toInt()
+                                }
+                                courseList.add(Course(
+                                    day = day,
+                                    name = name,
+                                    teacher = teacher,
+                                    credit = credit,
+                                    room = room,
+                                    startNode = startNode,
+                                    endNode = endNode,
+                                    startWeek = startWeek,
+                                    endWeek = endWeek,
+                                    type = 0,
+                                ))
+                            }
+                        }
                     }
-                    val b = """\d+周|\d+-+\d+周""".toRegex().findAll(fragment.toString())
-                        .map { it.value }.toList().toString()
-                        .replace("""周""".toRegex(), "")
-                        .replace(""",""".toRegex(), "")
-                        .substringAfter("[").substringBefore("]").split(" ").toList()
-                    val c = """第+\d+节+-第+\d+节""".toRegex().findAll(i.toString())
-                        .map { it.value }.toList().toString()
-                        .replace("第", "")
-                        .replace("节", "")
-                        .replace(",", "")
-                        .substringAfter("[").substringBefore("]")
-                        .split(" ").toList()
-                    if (c.isNotEmpty()) {
-                        for (i in c) {
-                            if (i.isNotEmpty()) {
-                                val (startNode1, endNode1) = i.split("-").map { it.toInt() }
-                                if (startNode1 != startNode) {
-                                    startNode = startNode1
-                                    endNode = endNode1
-                                    for (i in b) {
-                                    if (i.length > 2) {
-                                        val (startWeek1, endWeek1) = i.split("-").map { it.toInt() }
-                                        if (startWeek1 != startWeek) {
-                                            startWeek = startWeek1
-                                            endWeek = endWeek1
+                }
+                return courseList
+
+            }
+            false -> {
+                val id = doc.getElementById("wdkb-kb")
+                val byclass = id.getElementsByClass("kbappTimetableContentContainer")
+
+                byclass.forEach { allInfo ->
+                    allInfo.getElementsByClass("kbappTimetableDayColumnRoot").forEach { dayInfo ->
+
+                        var room: String
+                        var name: String
+                        var credit: Float
+                        var startNode: Int
+                        var endNode: Int
+                        var startWeek: Int
+                        var endWeek: Int
+                        var teacher = String()
+
+                        day += 1
+                        dayInfo.getElementsByClass("kbappTimetableCourseRenderCourseItemContainer").forEach { classinfo ->
+                            val all = classinfo.getElementsByClass("kbappTimetableCourseRenderCourseItemInfoText").toList().map { it.text().split(" ").toList() }
+                            name = all[0][0]
+                            credit = all[0][1].replace("[^0-9]".toRegex(), "").toFloat() / 10
+                            for (i in 1..all.size - 1) {
+                                val teacherNodeWeekRoom = all[i]
+
+                                room = room(teacherNodeWeekRoom)
+
+                                val teacher1 = teacher(teacherNodeWeekRoom.toString())
+
+                                if (teacher1.isNotEmpty()) {
+                                    teacher = teacher1
+                                }
+                                val n = node(teacherNodeWeekRoom.toString())
+                                val (startNode1, endNode1) = n.split("-").map { it.toInt() }
+                                startNode = startNode1
+                                endNode = endNode1
+
+                                val w = week(all[i].toString())
+                                w.forEach { w ->
+                                    val s = w
+                                    if (s.length > 2) {
+                                        val (startWeek1, endWeek1) = s.split("-").map { it.toInt() }
+                                        startWeek = startWeek1
+                                        endWeek = endWeek1
+                                    } else {
+                                        if (w.isEmpty()) {
+                                            error("请在学期课表导入")
                                         }
-                                    } else if (i.isNotEmpty()) {
-                                        startWeek = i.toInt()
-                                        endWeek = i.toInt()
+                                        startWeek = s.toInt()
+                                        endWeek = s.toInt()
                                     }
-                                    courseList.add(
-                                        Course(
-                                            name = name,
-                                            room = room,
-                                            teacher = teacher,
-                                            day = day,
-                                            startNode = startNode,
-                                            endNode = endNode,
-                                            startWeek = startWeek,
-                                            endWeek = endWeek,
-                                            type = 0,
-                                            credit = credit
-                                        )
-                                    )
-                                    }
+                                    courseList.add(Course(
+                                        day = day,
+                                        name = name,
+                                        teacher = teacher,
+                                        credit = credit,
+                                        room = room,
+                                        startNode = startNode,
+                                        endNode = endNode,
+                                        startWeek = startWeek,
+                                        endWeek = endWeek,
+                                        type = 0,
+                                    ))
                                 }
                             }
                         }
                     }
                 }
+
+
+                return courseList
             }
         }
-        return courseList
+    }
+
+    private fun week(string: String): List<String> {
+        return """\d+周|\d+-+\d+周""".toRegex().findAll(string)
+            .map { it.value }.toList().toString()
+            .replace("""周""".toRegex(), "")
+            .replace(""",""".toRegex(), "")
+            .substringAfter("[").substringBefore("]").split(" ").toList()
+    }
+
+    private fun teacher(string: String): String {
+        return "周([\\u4e00-\\u9fa5]+)".toRegex().find(string)?.let { it -> it.groupValues[1] }
+            .toString()
+    }
+
+    private fun node(string: String): String {
+        return """第+\d+节+-第+\d+节""".toRegex().findAll(string)
+            .map { it -> it.value }.toList().toString()
+            .replace("第", "")
+            .replace("节", "")
+            .replace(",", "")
+            .substringAfter("[").substringBefore("]")
+    }
+
+    private fun room(list: List<String>): String {
+        return if (list.size > 2) {
+            list[list.size - 1]
+        } else {
+            ""
+        }
     }
 }

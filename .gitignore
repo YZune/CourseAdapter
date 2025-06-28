@@ -4,3 +4,7 @@
 .DS_Store
 /production
 /private
+/.idea
+/src/main/java/test/课表查询.html
+/src/main/java/test/WISTTest.kt
+/src/main/java/parser/WISTParser.kt

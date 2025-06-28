@@ -1,6 +1,6 @@
 package main.java.test
 
-import parser.LNGDParser
+import main.java.parser.LNGDParser
 import java.io.File
 
 fun main() {

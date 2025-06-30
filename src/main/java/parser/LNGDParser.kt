@@ -7,6 +7,7 @@ import org.jsoup.Jsoup
 import parser.Parser
 
 class LNGDParser(source: String) : Parser(source) {
+
     override fun getNodes(): Int = 12
 
     override fun generateTimeTable(): TimeTable {
@@ -29,15 +30,15 @@ class LNGDParser(source: String) : Parser(source) {
         )
     }
 
-    override fun generateCourseList() : List<Course> {
+    override fun generateCourseList(): ArrayList<Course> {
         val courseList = arrayListOf<Course>()
 
         var day = 0
 
         val doc = Jsoup.parse(source)
 
-        when (doc.getElementById("root") != null) {
-            true -> {
+        when  {
+            doc.getElementById("root") != null -> {
                 val id = doc.getElementById("root")
                 val byclass = id.getElementsByClass("kbappTimetableDayColumnRoot___1DlDV")
 
@@ -107,7 +108,7 @@ class LNGDParser(source: String) : Parser(source) {
                 return courseList
 
             }
-            false -> {
+            doc.getElementById("wdkb-kb") != null -> {
                 val id = doc.getElementById("wdkb-kb")
                 val byclass = id.getElementsByClass("kbappTimetableContentContainer")
 
@@ -179,6 +180,7 @@ class LNGDParser(source: String) : Parser(source) {
                 return courseList
             }
         }
+        return arrayListOf<Course>()
     }
 
     private fun week(string: String): List<String> {
